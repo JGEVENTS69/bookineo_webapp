@@ -184,11 +184,11 @@ const AddBox = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Ajouter une boîte à livres</h1>
+      <h1 className="text-2xl flex justify-center font-bold mb-6">Ajouter une boîte à livres</h1>
 
       {step === 1 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-4">Étape 1: Informations sur la boîte</h2>
+        <div className="container border-2 border-primary rounded-lg shadow-xl mx-auto px-4 py-4">
+          <h2 className=" container mx-auto  text-white shadow-md px-4 py-4 max-w-5xl rounded-lg  bg-primary text-lg font-semibold mb-4">Étape 1: Informations sur la boîte</h2>
           <form onSubmit={(e) => { e.preventDefault(); setStep(2); }} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
