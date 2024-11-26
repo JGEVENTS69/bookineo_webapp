@@ -86,17 +86,6 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Styles pour les modales */
-.modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 z-50;
-  backdrop-filter: blur(4px);
-}
-
-.modal-content {
-  @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-         bg-white rounded-xl shadow-xl w-full max-w-md mx-4 max-h-[90vh] 
-         overflow-y-auto z-50;
-}
 
 /* Transitions entre sections */
 section {
@@ -121,4 +110,37 @@ img {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+.user-location-marker {
+  position: relative;
+}
+
+.user-location-marker .pulse {
+  width: 30px;
+  height: 30px;
+  background: rgba(66, 153, 225, 0.4); /* Couleur semi-transparente */
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.user-location-marker .dot {
+  width: 10px;
+  height: 10px;
+  background: rgba(66, 153, 225, 1); /* Couleur pleine */
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
 }
