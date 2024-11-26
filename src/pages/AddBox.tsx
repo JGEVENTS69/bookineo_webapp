@@ -8,6 +8,35 @@ import { LatLng } from 'leaflet';
 import L from 'leaflet';
 import { Upload, AlertCircle, LocateFixed, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { DivIcon } from 'leaflet';
+
+const style = document.createElement('style');
+style.innerHTML = `
+.custom-pulse-icon .pulse-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 100%;
+  background-color: #3A7C6A;
+  box-shadow: 0 0 0 rgba(58, 124, 106, 0.4);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(58, 124, 106, 0.4);
+  }
+  30% {
+    transform: scale(1.3);
+    box-shadow: 0 0 10px rgba(58, 124, 106, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(58, 124, 106, 0.4);
+  }
+}
+`;
+document.head.appendChild(style);
 
 const LocationPicker = ({ onLocationSelect }: { onLocationSelect: (latlng: L.LatLng) => void }) => {
   const [marker, setMarker] = useState<L.LatLng | null>(null);
@@ -57,11 +86,30 @@ const GeolocationButton = ({ onLocationFound }: { onLocationFound: (location: La
   );
 };
 
+const UserLocationMarker = ({ location }: { location: LatLng }) => {
+  const userIcon = new DivIcon({
+    className: 'custom-pulse-icon',
+    html: `
+      <div class="pulse-icon"></div>
+    `,
+    iconSize: [12, 12],
+  });
+
+  return (
+    <Marker 
+      position={location} 
+      icon={userIcon}
+    >
+    </Marker>
+  );
+};
+
 const AddBox = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState<LatLng | null>(null);
+  const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [boxCount, setBoxCount] = useState(0);
   const [formData, setFormData] = useState({
     name: '',
@@ -92,6 +140,7 @@ const AddBox = () => {
         (position) => {
           const { latitude, longitude } = position.coords;
           setMapCenter([latitude, longitude]);
+          setUserLocation(L.latLng(latitude, longitude));
           setMapZoom(13);
         },
         (error) => {
@@ -304,21 +353,25 @@ const AddBox = () => {
               Cliquez sur la carte pour placer la boîte à livres
             </p>
             <div className="h-[500px] rounded-lg overflow-hidden relative">
-              <MapContainer
-                center={mapCenter}
-                zoom={mapZoom}
-                className="h-full"
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                <LocationPicker onLocationSelect={setLocation} />
-                <GeolocationButton 
-                  onLocationFound={(latlng) => {
-                    setLocation(latlng);
-                  }} 
-                />
+            <MapContainer
+              center={mapCenter}
+              zoom={mapZoom}
+              className="h-full z-10"
+            >
+           <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+           />
+            <LocationPicker onLocationSelect={setLocation} />
+            <GeolocationButton 
+               onLocationFound={(latlng) => {
+                setLocation(latlng);
+               setUserLocation(latlng);
+              }}
+           />
+          {userLocation && (
+           <UserLocationMarker location={userLocation} />
+                )}
               </MapContainer>
             </div>
             {location && (
