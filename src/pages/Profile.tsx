@@ -2,17 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import {
-  User,
-  Edit,
-  Save,
-  X,
-  Upload,
-  Trash2,
-  AtSign,
-  Mail,
-} from 'lucide-react';
+import { Edit, X, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ProfileHeader } from '../components/Profile/ProfileHeader';
+import { ProfileStats } from '../components/Profile/ProfileStats';
+import { ProfileForm } from '../components/Profile/ProfileForm';
 
 const ProfilePage = () => {
   const { user, signOut } = useAuthStore();
@@ -60,7 +54,7 @@ const ProfilePage = () => {
     fetchUserStats();
   }, [user, navigate]);
 
-  const handleUpdateProfile = async (e) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -73,14 +67,14 @@ const ProfilePage = () => {
       if (error) throw error;
       toast.success('Profil mis à jour');
       setIsEditing(false);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAvatarUpload = async (e) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -95,9 +89,9 @@ const ProfilePage = () => {
 
       if (uploadError) throw uploadError;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
 
       const { error: updateError } = await supabase
         .from('users')
@@ -107,7 +101,7 @@ const ProfilePage = () => {
       if (updateError) throw updateError;
 
       toast.success('Photo de profil mise à jour');
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message);
     } finally {
       setLoading(false);
@@ -115,16 +109,14 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (
-      window.confirm('Supprimer votre compte ? Cette action est irréversible.')
-    ) {
+    if (window.confirm('Supprimer votre compte ? Cette action est irréversible.')) {
       try {
         setLoading(true);
         await supabase.from('users').delete().eq('id', user?.id);
         await signOut();
         navigate('/');
         toast.success('Compte supprimé');
-      } catch (error) {
+      } catch (error: any) {
         toast.error(error.message);
       } finally {
         setLoading(false);
@@ -133,186 +125,77 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="bg-white border-2 border-primary shadow-xl rounded-xl overflow-hidden">
-        <div className="bg-primary p-6 flex items-center justify-between">
-          <div className="flex items-center space-x-6">
-            <div className="relative group">
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt="Avatar"
-                  className="h-20 w-20 rounded-full object-cover border-3 border-white"
-                />
-              ) : (
-                <div className="h-20 w-20 rounded-full bg-neutral-100 border-2 border-white flex items-center justify-center">
-                  <User className="h-10 w-10 text-neutral-500" />
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-[#d8596e] text-white p-1.5 rounded-full cursor-pointer">
-                <Upload className="h-4 w-4" />
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={loading}
-                />
-              </label>
-            </div>
-            <div>
-              <h1 className="text-4xl font-semibold text-white">
-                {user.username}
-              </h1>
-              <div className="flex items-center mt-1 space-x-2 text-base text-white">
-                <Mail className="h-4 w-4" />
-                <p>{user.email}</p>
-              </div>
-              <div className="mt-3 text-sm bg-[#d8596e] px-3 py-1 rounded-full inline-block">
-                <span className="text-white">Membre : </span>
-                <span className="font-bold text-white">
-                  {user.subscription}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="text-white hover:bg-neutral-200 hover:text-primary p-2 rounded-full"
-            >
-              {isEditing ? <X /> : <Edit />}
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-lg mt-5 mx-auto">
+        {/* Header with edit button */}
+        <div className="relative">
+          <ProfileHeader
+            user={user}
+            loading={loading}
+            onAvatarUpload={handleAvatarUpload}
+          />
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm p-2.5 rounded-full text-white hover:bg-white/20 active:scale-95 transition-all"
+            aria-label={isEditing ? "Annuler" : "Modifier"}
+          >
+            {isEditing ? <X className="h-5 w-5" /> : <Edit className="h-5 w-5" />}
+          </button>
         </div>
 
-        <div className="p-6">
+        {/* Main content */}
+        <div className="bg-white shadow-sm rounded-t-3xl -mt-8">
+          <div className="p-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">
+              {isEditing ? 'Modifier le profil' : 'Informations'}
+            </h2>
+          </div>
+
           {isEditing ? (
-            <form onSubmit={handleUpdateProfile} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-lg font-medium text-neutral-700">
-                    Prénom
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.first_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, first_name: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring focus:ring-neutral-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-lg font-medium text-neutral-700">
-                    Nom
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.last_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, last_name: e.target.value })
-                    }
-                    className="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring focus:ring-neutral-200"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-lg font-medium text-neutral-700">
-                  Nom d'utilisateur
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                  className="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring focus:ring-neutral-200"
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  type="submit"
-                  className="flex items-center bg-primary text-white px-4 py-2 rounded-md hover:bg-neutral-700 transition"
-                  disabled={loading}
-                >
-                  <Save className="mr-2 h-5 w-5" />
-                  {loading ? 'Enregistrement...' : 'Enregistrer'}
-                </button>
-              </div>
-            </form>
+            <ProfileForm
+              formData={formData}
+              onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
+              onSubmit={handleUpdateProfile}
+              loading={loading}
+            />
           ) : (
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-lg font-bold text-primary">Prénom</p>
-                  <p className="font-medium text-neutral-800">
-                    {user.first_name || 'Non renseigné'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-lg font-bold text-primary">Nom</p>
-                  <p className="font-medium text-neutral-800">
-                    {user.last_name || 'Non renseigné'}
-                  </p>
+            <>
+              <div className="p-4 border-b border-gray-100">
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Prénom</p>
+                    <p className="mt-1 font-medium text-gray-900">
+                      {user.first_name || 'Non renseigné'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Nom</p>
+                    <p className="mt-1 font-medium text-gray-900">
+                      {user.last_name || 'Non renseigné'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+
+              <ProfileStats
+                boxCount={boxStats.boxCount}
+                favoriteCount={boxStats.favoriteCount}
+                boxLimit={boxLimit}
+                favoriteLimit={favoriteLimit}
+              />
+            </>
           )}
 
-          <div className="mt-6 bg-neutral-100 rounded-lg p-4">
-            <h2 className="text-xl font-bold text-neutral-800 mb-4">
-              Vos Statistiques
-            </h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Bloc Boîtes Créées */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-neutral-500">Boîtes Créées</p>
-                <p className="text-xl font-bold text-neutral-800">
-                  {boxStats.boxCount} / {boxLimit}
-                </p>
-                {/* Barre de progression pour Boîtes Créées */}
-                <div className="w-full bg-neutral-200 rounded-full h-4 mt-2">
-                  <div
-                    className="bg-primary h-4 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        (boxStats.boxCount / boxLimit) * 100,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Bloc Favoris */}
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-neutral-500">Favoris</p>
-                <p className="text-xl font-bold text-neutral-800">
-                  {boxStats.favoriteCount} / {favoriteLimit}
-                </p>
-                {/* Barre de progression pour Favoris */}
-                <div className="w-full bg-neutral-200 rounded-full h-4 mt-2">
-                  <div
-                    className="bg-primary h-4 rounded-full"
-                    style={{
-                      width: `${Math.min(
-                        (boxStats.favoriteCount / favoriteLimit) * 100,
-                        100
-                      )}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+          {/* Delete account button */}
+          <div className="p-4">
+            <button
+              onClick={handleDeleteAccount}
+              className="w-full bg-rose-50 text-rose-600 py-3 px-4 rounded-xl font-medium hover:bg-rose-100 active:bg-rose-200 transition-colors flex items-center justify-center gap-2 group"
+            >
+              <Trash2 className="h-5 w-5 transition-transform group-hover:rotate-12" />
+              <span>Supprimer le compte</span>
+            </button>
           </div>
-          <button
-            onClick={handleDeleteAccount}
-            className="mt-5 text-sm font-bold bg-[#d8596e] px-4 py-4 rounded-lg inline-block text-white"
-          >
-            <Trash2 className="inline-block mr-2 h-6 w-6" />
-            Supprimer le compte
-          </button>
         </div>
       </div>
     </div>
