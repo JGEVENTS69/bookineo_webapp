@@ -31,10 +31,13 @@ export const SettingsTab = ({ subscription, onDeleteAccount, onUpgrade }: Settin
             
             <ul className="space-y-3 text-gray-600">
               <li className="flex items-center gap-2">
-                • {isFreemium ? '5 boxes maximum' : 'Boxes illimitées'}
+                • {isFreemium ? '5 boîtes à livres maximum' : 'Boxes illimitées'}
               </li>
               <li className="flex items-center gap-2">
-                • {isFreemium ? '5 favoris maximum' : 'Favoris illimités'}
+                • {isFreemium ? '5 boîtes en favoris maximum' : 'Favoris illimités'}
+              </li>
+              <li className="flex items-center gap-2">
+                • {isFreemium ? '5 avis et évalutaions maximum' : 'Favoris illimités'}
               </li>
               {!isFreemium && (
                 <li className="flex items-center gap-2">

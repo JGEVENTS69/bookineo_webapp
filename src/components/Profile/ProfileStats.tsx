@@ -15,7 +15,7 @@ export const ProfileStats = ({
   favoriteLimit
 }: ProfileStatsProps) => {
   return (
-    <div className="grid grid-cols-2 gap-6 p-6">
+    <div className="grid grid-cols-2 gap-6">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-6">
         <div className="absolute top-0 right-0 w-16 h-16 transform translate-x-8 -translate-y-8">
           <div className="w-full h-full bg-blue-100 rounded-full opacity-50" />

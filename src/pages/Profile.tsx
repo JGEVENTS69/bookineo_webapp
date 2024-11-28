@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import { LogOut } from 'lucide-react';
+import { User, Settings, Package, LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ProfileTab } from '../components/Profile/Tabs/ProfileTab';
 import { BoxesTab } from '../components/Profile/Tabs/BoxesTab';
 import { SettingsTab } from '../components/Profile/Tabs/SettingsTab';
 
 const TABS = [
-  { id: 'profile', label: 'Profile' },
-  { id: 'boxes', label: 'Mes boîtes' },
-  { id: 'settings', label: 'Paramètres' }
+  { id: 'profile', label: 'Profil', icon: User },
+  { id: 'boxes', label: 'Mes boxes', icon: Package },
+  { id: 'settings', label: 'Paramètres', icon: Settings }
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -28,6 +28,11 @@ const ProfilePage = () => {
     username: user?.username || '',
   });
 
+  if (!user) {
+    navigate('/auth');
+    return null;
+  }
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -36,7 +41,7 @@ const ProfilePage = () => {
       const { error } = await supabase
         .from('users')
         .update(formData)
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (error) throw error;
       toast.success('Profil mis à jour');
@@ -55,7 +60,7 @@ const ProfilePage = () => {
     try {
       setLoading(true);
       const fileExt = file.name.split('.').pop();
-      const filePath = `avatars/${user?.id}.${fileExt}`;
+      const filePath = `avatars/${user.id}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -70,7 +75,7 @@ const ProfilePage = () => {
       const { error: updateError } = await supabase
         .from('users')
         .update({ avatar_url: publicUrl })
-        .eq('id', user?.id);
+        .eq('id', user.id);
 
       if (updateError) throw updateError;
 
@@ -86,7 +91,7 @@ const ProfilePage = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
       try {
         setLoading(true);
-        await supabase.from('users').delete().eq('id', user?.id);
+        await supabase.from('users').delete().eq('id', user.id);
         await signOut();
         navigate('/');
         toast.success('Compte supprimé avec succès');
@@ -99,7 +104,6 @@ const ProfilePage = () => {
   };
 
   const handleUpgrade = () => {
-    // Logique pour la mise à niveau vers Premium
     toast.success('Redirection vers la page de paiement...');
   };
 
@@ -114,27 +118,65 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 bg-white p-1 rounded-xl shadow-sm">
-          {TABS.map(({ id, label }) => (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 px-3 py-6 fixed h-full">
+        <div className="mb-8 px-3">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                  {`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+                </div>
+              )}
+            </div>
+            <div>
+              <h2 className="font-semibold text-gray-900">
+                {user.first_name} {user.last_name}
+              </h2>
+              <p className="text-sm text-gray-500">@{user.username}</p>
+            </div>
+          </div>
+        </div>
+
+        <nav className="space-y-1">
+          {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
                 activeTab === id
-                  ? 'bg-primary text-white shadow-md'
+                  ? 'bg-blue-50 text-blue-600'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
+              <Icon className="h-5 w-5" />
               {label}
             </button>
           ))}
-        </div>
+        </nav>
 
-        {/* Tab Content */}
-        <div className="mb-8">
+        <div className="absolute bottom-6 left-3 right-3">
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-lg font-medium 
+                     text-gray-600 hover:bg-gray-50 transition-all"
+          >
+            <LogOut className="h-5 w-5" />
+            Déconnexion
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 ml-64">
+        <div className="max-w-3xl mx-auto px-8 py-8">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">{TABS.find(t => t.id === activeTab)?.label}</h1>
+          </div>
+
           {activeTab === 'profile' && (
             <ProfileTab
               user={user}
@@ -150,23 +192,12 @@ const ProfilePage = () => {
           {activeTab === 'boxes' && <BoxesTab />}
           {activeTab === 'settings' && (
             <SettingsTab
-              subscription={user?.subscription || 'Freemium'}
+              subscription={user.subscription || 'Freemium'}
               onDeleteAccount={handleDeleteAccount}
               onUpgrade={handleUpgrade}
             />
           )}
         </div>
-
-        {/* Logout Button */}
-        <button
-          onClick={handleSignOut}
-          className="w-full bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium 
-                   hover:bg-gray-200 active:bg-gray-300 transition-all flex items-center 
-                   justify-center gap-2"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>Déconnexion</span>
-        </button>
       </div>
     </div>
   );

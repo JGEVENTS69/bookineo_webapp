@@ -13,10 +13,10 @@ export const ProfileHeader = ({ user, loading, onAvatarUpload }: ProfileHeaderPr
   return (
     <div className="relative">
       <div 
-        className="h-40 rounded-xl bg-primary
+        className="h-40 bg-transparent
                    bg-cover bg-center relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60" />
+        <div className="absolute inset-0" />
       </div>
       <div className="absolute bottom-20 left-0 right-0 transform translate-y-1/2 px-4">
         <div className="flex items-end gap-6 ">
@@ -27,8 +27,8 @@ export const ProfileHeader = ({ user, loading, onAvatarUpload }: ProfileHeaderPr
             onAvatarUpload={onAvatarUpload}
             loading={loading}
           />
-          <div className="mb-4 text-white">
-          <div className='absolute top-0 right-4'>
+          <div className="mb-4 text-black">
+          <div className='flex absolut right-0'>
           <SubscriptionBadge subscription={user.subscription} />
           </div>
             <div className="flex items-center mt-5 mb-1">
