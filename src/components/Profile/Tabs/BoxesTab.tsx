@@ -1,53 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { Package2, Search, Heart } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../store/authStore';
+import { Box } from '../../../types/box';
+import { BoxCard } from './BoxCard';
+import { EmptyBoxState } from './EmptyBoxState';
 import toast from 'react-hot-toast';
-
-interface Box {
-  id: string;
-  title: string;
-  description: string;
-  created_at: string;
-  likes_count: number;
-  image_url?: string;
-}
 
 export const BoxesTab = () => {
   const { user } = useAuthStore();
   const [boxes, setBoxes] = useState<Box[]>([]);
+  const [visitCounts, setVisitCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetchBoxes = async () => {
-      if (!user?.id) return;
+    const fetchBoxesAndVisits = async () => {
+      if (!user?.id) {
+        console.log('No user ID found');
+        return;
+      }
 
       try {
         setLoading(true);
-        console.log('Récupération des boxes pour l\'utilisateur:', user.id); // Debug
+        console.log('Fetching boxes for user:', user.id);
 
-        const { data, error } = await supabase
+        // Fetch boxes
+        const { data: boxesData, error: boxesError } = await supabase
           .from('book_boxes')
           .select('*')
           .eq('creator_id', user.id);
 
-        if (error) {
-          console.error('Erreur Supabase:', error); // Debug
-          throw error;
+        if (boxesError) {
+          console.error('Error fetching boxes:', boxesError);
+          throw boxesError;
         }
 
-        console.log('Données reçues:', data); // Debug
-        setBoxes(data || []);
+        if (!boxesData || boxesData.length === 0) {
+          console.log('No boxes found for user');
+          setBoxes([]);
+          setVisitCounts({});
+          return;
+        }
+
+        // Get visit counts for each box using count aggregation
+        const boxIds = boxesData.map(box => box.id);
+        const { data: visitsData, error: visitsError } = await supabase
+          .from('box_visits')
+          .select('box_id, count')
+          .in('box_id', boxIds)
+          .select('box_id');
+
+        if (visitsError) {
+          console.error('Error fetching visits:', visitsError);
+          throw visitsError;
+        }
+
+        // Process boxes
+        const processedBoxes = boxesData.map(box => ({
+          id: box.id,
+          title: box.title,
+          description: box.description,
+          created_at: box.created_at,
+          image_url: box.image_url
+        }));
+
+        // Count total visits per box
+        const visitsMap = boxIds.reduce((acc: Record<string, number>, boxId) => {
+          acc[boxId] = visitsData?.filter(visit => visit.box_id === boxId).length || 0;
+          return acc;
+        }, {});
+
+        console.log('Processed boxes:', processedBoxes);
+        console.log('Visit counts:', visitsMap);
+
+        setBoxes(processedBoxes);
+        setVisitCounts(visitsMap);
       } catch (error: any) {
-        console.error('Erreur détaillée:', error);
+        console.error('Error in fetchBoxesAndVisits:', error);
         toast.error('Impossible de charger vos boxes');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBoxes();
+    fetchBoxesAndVisits();
   }, [user?.id]);
 
   const filteredBoxes = boxes.filter(box =>
@@ -80,60 +117,15 @@ export const BoxesTab = () => {
       {filteredBoxes.length > 0 ? (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredBoxes.map((box) => (
-            <div
+            <BoxCard
               key={box.id}
-              className="bg-white rounded-lg overflow-hidden shadow-lg hover:scale-105 hover:shadow-xl transition-transform"
-            >
-              <div className="relative w-full h-48 bg-gray-100">
-                {box.image_url ? (
-                  <img
-                    src={box.image_url}
-                    alt={box.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '';
-                      target.onerror = null;
-                    }}
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-full h-full animate-pulse">
-                    <Package2 className="h-10 w-10 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 truncate">{box.title}</h3>
-                <p className="text-sm text-gray-600 line-clamp-2 mt-2">{box.description}</p>
-                <div className="flex items-center justify-between mt-4 text-sm text-gray-500">
-                  <span>
-                    {new Date(box.created_at).toLocaleDateString('fr-FR', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-5 w-5 text-rose-500" />
-                    <span>{box.likes_count || 0}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              box={box}
+              visitCount={visitCounts[box.id] || 0}
+            />
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <Package2 className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
-            {searchQuery ? 'Aucun résultat' : 'Aucune box'}
-          </h3>
-          <p className="mt-2 text-gray-600">
-            {searchQuery
-              ? 'Aucune box ne correspond à votre recherche.'
-              : 'Vous n\'avez pas encore créé de box.'}
-          </p>
-        </div>
+        <EmptyBoxState searchQuery={searchQuery} />
       )}
     </div>
   );

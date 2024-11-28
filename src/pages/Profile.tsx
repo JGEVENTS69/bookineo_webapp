@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import { User, Settings, Package, LogOut } from 'lucide-react';
+import { User, Settings, Package, LogOut, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ProfileTab } from '../components/Profile/Tabs/ProfileTab';
 import { BoxesTab } from '../components/Profile/Tabs/BoxesTab';
@@ -10,7 +10,7 @@ import { SettingsTab } from '../components/Profile/Tabs/SettingsTab';
 
 const TABS = [
   { id: 'profile', label: 'Profil', icon: User },
-  { id: 'boxes', label: 'Mes boxes', icon: Package },
+  { id: 'boxes', label: 'Mes boîtes', icon: BookOpen },
   { id: 'settings', label: 'Paramètres', icon: Settings }
 ] as const;
 
