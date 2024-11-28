@@ -1,58 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
-import { Edit, X, Trash2 } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { ProfileHeader } from '../components/Profile/ProfileHeader';
-import { ProfileStats } from '../components/Profile/ProfileStats';
-import { ProfileForm } from '../components/Profile/ProfileForm';
+import { ProfileTab } from '../components/Profile/Tabs/ProfileTab';
+import { BoxesTab } from '../components/Profile/Tabs/BoxesTab';
+import { SettingsTab } from '../components/Profile/Tabs/SettingsTab';
+
+const TABS = [
+  { id: 'profile', label: 'Profile' },
+  { id: 'boxes', label: 'Mes boîtes' },
+  { id: 'settings', label: 'Paramètres' }
+] as const;
+
+type TabId = typeof TABS[number]['id'];
 
 const ProfilePage = () => {
   const { user, signOut } = useAuthStore();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabId>('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [boxStats, setBoxStats] = useState({
-    boxCount: 0,
-    favoriteCount: 0,
-  });
   const [formData, setFormData] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
     username: user?.username || '',
   });
-
-  const isFreemium = user?.subscription === 'Freemium';
-  const boxLimit = isFreemium ? 5 : Infinity;
-  const favoriteLimit = isFreemium ? 5 : Infinity;
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    const fetchUserStats = async () => {
-      const [boxesResult, favoritesResult] = await Promise.all([
-        supabase
-          .from('book_boxes')
-          .select('*', { count: 'exact', head: true })
-          .eq('creator_id', user.id),
-        supabase
-          .from('favorites')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id),
-      ]);
-
-      setBoxStats({
-        boxCount: boxesResult.count || 0,
-        favoriteCount: favoritesResult.count || 0,
-      });
-    };
-
-    fetchUserStats();
-  }, [user, navigate]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +83,13 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm('Supprimer votre compte ? Cette action est irréversible.')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
       try {
         setLoading(true);
         await supabase.from('users').delete().eq('id', user?.id);
         await signOut();
         navigate('/');
-        toast.success('Compte supprimé');
+        toast.success('Compte supprimé avec succès');
       } catch (error: any) {
         toast.error(error.message);
       } finally {
@@ -124,79 +98,75 @@ const ProfilePage = () => {
     }
   };
 
+  const handleUpgrade = () => {
+    // Logique pour la mise à niveau vers Premium
+    toast.success('Redirection vers la page de paiement...');
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+      toast.success('Déconnexion réussie');
+    } catch (error: any) {
+      toast.error('Erreur lors de la déconnexion');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50/50">
-      <div className="max-w-lg mt-5 mx-auto">
-        {/* Header with edit button */}
-        <div className="relative">
-          <ProfileHeader
-            user={user}
-            loading={loading}
-            onAvatarUpload={handleAvatarUpload}
-          />
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm p-2.5 rounded-full text-white hover:bg-white/20 active:scale-95 transition-all"
-            aria-label={isEditing ? "Annuler" : "Modifier"}
-          >
-            {isEditing ? <X className="h-5 w-5" /> : <Edit className="h-5 w-5" />}
-          </button>
-        </div>
-
-        {/* Main content */}
-        <div className="bg-white shadow-sm rounded-t-3xl -mt-8">
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="text-lg font-semibold text-gray-900">
-              {isEditing ? 'Modifier le profil' : 'Informations'}
-            </h2>
-          </div>
-
-          {isEditing ? (
-            <ProfileForm
-              formData={formData}
-              onChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
-              onSubmit={handleUpdateProfile}
-              loading={loading}
-            />
-          ) : (
-            <>
-              <div className="p-4 border-b border-gray-100">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Prénom</p>
-                    <p className="mt-1 font-medium text-gray-900">
-                      {user.first_name || 'Non renseigné'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Nom</p>
-                    <p className="mt-1 font-medium text-gray-900">
-                      {user.last_name || 'Non renseigné'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <ProfileStats
-                boxCount={boxStats.boxCount}
-                favoriteCount={boxStats.favoriteCount}
-                boxLimit={boxLimit}
-                favoriteLimit={favoriteLimit}
-              />
-            </>
-          )}
-
-          {/* Delete account button */}
-          <div className="p-4">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8 bg-white p-1 rounded-xl shadow-sm">
+          {TABS.map(({ id, label }) => (
             <button
-              onClick={handleDeleteAccount}
-              className="w-full bg-rose-50 text-rose-600 py-3 px-4 rounded-xl font-medium hover:bg-rose-100 active:bg-rose-200 transition-colors flex items-center justify-center gap-2 group"
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all ${
+                activeTab === id
+                  ? 'bg-primary text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
             >
-              <Trash2 className="h-5 w-5 transition-transform group-hover:rotate-12" />
-              <span>Supprimer le compte</span>
+              {label}
             </button>
-          </div>
+          ))}
         </div>
+
+        {/* Tab Content */}
+        <div className="mb-8">
+          {activeTab === 'profile' && (
+            <ProfileTab
+              user={user}
+              loading={loading}
+              isEditing={isEditing}
+              formData={formData}
+              onAvatarUpload={handleAvatarUpload}
+              onFormChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
+              onFormSubmit={handleUpdateProfile}
+              onEditToggle={() => setIsEditing(!isEditing)}
+            />
+          )}
+          {activeTab === 'boxes' && <BoxesTab />}
+          {activeTab === 'settings' && (
+            <SettingsTab
+              subscription={user?.subscription || 'Freemium'}
+              onDeleteAccount={handleDeleteAccount}
+              onUpgrade={handleUpgrade}
+            />
+          )}
+        </div>
+
+        {/* Logout Button */}
+        <button
+          onClick={handleSignOut}
+          className="w-full bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-medium 
+                   hover:bg-gray-200 active:bg-gray-300 transition-all flex items-center 
+                   justify-center gap-2"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Déconnexion</span>
+        </button>
       </div>
     </div>
   );

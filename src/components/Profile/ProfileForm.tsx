@@ -1,4 +1,5 @@
-import { Save } from 'lucide-react';
+import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface ProfileFormProps {
   formData: {
@@ -11,59 +12,74 @@ interface ProfileFormProps {
   loading: boolean;
 }
 
-export const ProfileForm = ({ formData, onChange, onSubmit, loading }: ProfileFormProps) => {
+export const ProfileForm = ({
+  formData,
+  onChange,
+  onSubmit,
+  loading
+}: ProfileFormProps) => {
   return (
-    <form onSubmit={onSubmit} className="space-y-6 p-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+    <form onSubmit={onSubmit} className="p-6 space-y-6">
+      <div className="space-y-5">
+        <div>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+            Nom d'utilisateur
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formData.username}
+            onChange={onChange}
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 
+                     focus:ring focus:ring-blue-200 transition-all"
+            disabled={loading}
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-2">
             Prénom
           </label>
           <input
             type="text"
+            id="first_name"
             name="first_name"
             value={formData.first_name}
             onChange={onChange}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#266CDD]/20 focus:border-[#266CDD] transition-all"
-            placeholder="Votre prénom"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 
+                     focus:ring focus:ring-blue-200 transition-all"
+            disabled={loading}
           />
         </div>
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+        
+        <div>
+          <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-2">
             Nom
           </label>
           <input
             type="text"
+            id="last_name"
             name="last_name"
             value={formData.last_name}
             onChange={onChange}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#266CDD]/20 focus:border-[#266CDD] transition-all"
-            placeholder="Votre nom"
+            className="w-full px-4 py-3 rounded-xl border-2 border-gray-100 focus:border-blue-500 
+                     focus:ring focus:ring-blue-200 transition-all"
+            disabled={loading}
           />
         </div>
-      </div>
-      
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Nom d'utilisateur
-        </label>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={onChange}
-          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[#266CDD]/20 focus:border-[#266CDD] transition-all"
-          placeholder="Nom d'utilisateur"
-        />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-[#266CDD] text-white py-3.5 rounded-xl font-medium hover:bg-[#266CDD]/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl 
+                 font-medium hover:from-blue-600 hover:to-blue-700 active:scale-[0.98] transition-all 
+                 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 
+                 shadow-lg shadow-blue-500/25"
       >
-        <Save className="h-5 w-5" />
-        <span>{loading ? 'Enregistrement...' : 'Enregistrer'}</span>
+        {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+        Enregistrer
       </button>
     </form>
   );
