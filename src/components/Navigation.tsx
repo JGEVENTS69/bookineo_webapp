@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { BookOpen, Map, User, LogOut, Menu, MenuSquare } from 'lucide-react';
+import { BookOpen, Map, User, LogOut, MenuSquare, X, MessageCircleX, Circle, XCircle } from 'lucide-react';
+import { BiCloset } from 'react-icons/bi';
 
 const Layout = ({ children }) => {
   return (
@@ -16,6 +17,7 @@ const Navigation = () => {
   const { user, signOut } = useAuthStore();
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);  // Added state for sidebar
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -72,58 +74,77 @@ const Navigation = () => {
               /* Dropdown pour utilisateurs connectés */
               <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onClick={() => setSidebarOpen(!isSidebarOpen)}  // Toggle sidebar on click
                   className="flex items-center px-3 py-2 text-sm font-medium text-gray-500 hover:text-primary hover:bg-gray-50 rounded-md transition-colors duration-200"
-                  aria-expanded={isDropdownOpen}
+                  aria-expanded={isSidebarOpen}
                   aria-haspopup="true"
                 >
                   <MenuSquare className="h-8 w-8" />
                   <span className="ml-2 hidden md:inline">Menu</span>
                 </button>
 
-                {/* Dropdown Menu - uniquement pour utilisateurs connectés */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 mt-4 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-[9999] transform origin-top-right transition-all duration-200 ease-out">
-                    <div className="py-3">
-                      <Link
-                        to="/map"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                        onClick={() => setIsDropdownOpen(false)}
+                {/* Sidebar Menu - Menu Latéral */}
+                {isSidebarOpen && (
+                  <div
+                    className="fixed inset-0 bg-gray-800 bg-opacity-50 z-[9998]"
+                    onClick={() => setSidebarOpen(false)}  // Close sidebar when clicking outside
+                  />
+                )}
+
+                <div
+                  className={`fixed right-0 top-0 w-64 h-full bg-white shadow-lg z-[9999] transform transition-all duration-300 ease-in-out ${
+                    isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+                  }`}
+                >
+                  <div className="flex justify-between items-center px-4 py-4">
+                  <span className="text-2xl text-primary font-semibold">Menu</span>
+                    <button
+                      onClick={() => setSidebarOpen(false)}  // Close sidebar on button click
+                      className="text-[#d8596e]"
+                    >
+                      <XCircle className="h-8 w-8" />
+                    </button>
+                  </div>
+
+                  <div className="py-3 space-y-3">
+                    <Link
+                      to="/map"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <Map className="h-5 w-5 mr-2" />
+                      Carte
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <User className="h-5 w-5 mr-2" />
+                      Profil
+                    </Link>
+                    <Link
+                      to="/my-boxes"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <BookOpen className="h-5 w-5 mr-2" />
+                      Mes boîtes
+                    </Link>
+                    <div className="flex justify-center border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setSidebarOpen(false);
+                        }}
+                        className="inline-flex items-center mt-8 mb-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200"
                       >
-                        <Map className="h-5 w-5 mr-2" />
-                        Carte
-                      </Link>
-                      <Link
-                        to="/profile"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <User className="h-5 w-5 mr-2" />
-                        Profil
-                      </Link>
-                      <Link
-                        to="/my-boxes"
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                        onClick={() => setIsDropdownOpen(false)}
-                      >
-                        <BookOpen className="h-5 w-5 mr-2" />
-                        Mes boîtes
-                      </Link>
-                      <div className="flex justify-center border-t border-gray-100">
-                        <button
-                          onClick={() => {
-                            signOut();
-                            setIsDropdownOpen(false);
-                          }}
-                          className="inline-flex items-center mt-8 mb-2 px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200"
-                        >
-                          <LogOut className="h-5 w-5 mr-2" />
-                          Se déconnecter
-                        </button>
-                      </div>
+                        <LogOut className="h-5 w-5 mr-2" />
+                        Se déconnecter
+                      </button>
                     </div>
                   </div>
-                )}
+                </div>
               </div>
             )}
           </div>

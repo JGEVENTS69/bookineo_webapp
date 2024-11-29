@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { supabase } from '../lib/supabase';
-import { User, Settings, Package, LogOut, BookOpen } from 'lucide-react';
+import { Menu, LogOut, User, BookOpen, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { ProfileTab } from '../components/Profile/Tabs/ProfileTab';
 import { BoxesTab } from '../components/Profile/Tabs/BoxesTab';
@@ -20,92 +19,12 @@ const ProfilePage = () => {
   const { user, signOut } = useAuthStore();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('profile');
-  const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    username: user?.username || '',
-  });
+  const [isSidebarOpen, setSidebarOpen] = useState(false); // State for sidebar visibility
 
   if (!user) {
     navigate('/auth');
     return null;
   }
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update(formData)
-        .eq('id', user.id);
-
-      if (error) throw error;
-      toast.success('Profil mis à jour');
-      setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setLoading(true);
-      const fileExt = file.name.split('.').pop();
-      const filePath = `avatars/${user.id}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ avatar_url: publicUrl })
-        .eq('id', user.id);
-
-      if (updateError) throw updateError;
-
-      toast.success('Photo de profil mise à jour');
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
-      try {
-        setLoading(true);
-        await supabase.from('users').delete().eq('id', user.id);
-        await signOut();
-        navigate('/');
-        toast.success('Compte supprimé avec succès');
-      } catch (error: any) {
-        toast.error(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  const handleUpgrade = () => {
-    toast.success('Redirection vers la page de paiement...');
-  };
 
   const handleSignOut = async () => {
     try {
@@ -119,8 +38,20 @@ const ProfilePage = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      {/* Mobile Menu Toggle */}
+      <button
+        onClick={() => setSidebarOpen(!isSidebarOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-3 bg-white rounded-full shadow-lg"
+        aria-label="Toggle menu"
+      >
+        <Menu className="h-6 w-6 text-gray-600" />
+      </button>
+
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 px-3 py-6 fixed h-full">
+      <div
+        className={`fixed top-0 left-0 h-full w-64 bg-white border-r border-gray-200 px-3 py-6 transform transition-transform duration-300 z-40
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:block`}
+      >
         <div className="mb-8 px-3">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
@@ -145,7 +76,10 @@ const ProfilePage = () => {
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
+              onClick={() => {
+                setActiveTab(id);
+                setSidebarOpen(false); // Close sidebar on mobile
+              }}
               className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
                 activeTab === id
                   ? 'bg-blue-50 text-blue-600'
@@ -171,32 +105,15 @@ const ProfilePage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 ml-64">
+      <div className="flex-1 ml-0 md:ml-64">
         <div className="max-w-3xl mx-auto px-8 py-8">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">{TABS.find(t => t.id === activeTab)?.label}</h1>
           </div>
 
-          {activeTab === 'profile' && (
-            <ProfileTab
-              user={user}
-              loading={loading}
-              isEditing={isEditing}
-              formData={formData}
-              onAvatarUpload={handleAvatarUpload}
-              onFormChange={(e) => setFormData({ ...formData, [e.target.name]: e.target.value })}
-              onFormSubmit={handleUpdateProfile}
-              onEditToggle={() => setIsEditing(!isEditing)}
-            />
-          )}
+          {activeTab === 'profile' && <ProfileTab user={user} />}
           {activeTab === 'boxes' && <BoxesTab />}
-          {activeTab === 'settings' && (
-            <SettingsTab
-              subscription={user.subscription || 'Freemium'}
-              onDeleteAccount={handleDeleteAccount}
-              onUpgrade={handleUpgrade}
-            />
-          )}
+          {activeTab === 'settings' && <SettingsTab />}
         </div>
       </div>
     </div>
