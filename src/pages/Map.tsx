@@ -53,7 +53,7 @@ const AddBoxButton = () => {
         <div className="flex justify-center w-full pointer-events-auto">
           <button
             onClick={() => navigate('/add-box')}
-            className="bg-primary text-white px-6 py-3 rounded-lg shadow-md hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center space-x-2"
+            className="bg-primary text-sm text-white px-7 py-4 rounded-lg shadow-md hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center space-x-2"
           >
             <Plus className="h-5 w-5" />
             <span>Ajoutez une boîte à livres</span>
@@ -74,7 +74,7 @@ const AddBoxButton = () => {
         <div className="flex justify-center w-full pointer-events-auto">
           <button
             onClick={() => navigate('/add-box')}
-            className="bg-primary text-white px-6 py-3 rounded-lg shadow-md hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center space-x-2"
+            className="bg-primary text-sm text-white px-7 py-4 rounded-lg shadow-md hover:bg-primary-dark transition-colors focus:outline-none focus:ring-2 focus:ring-primary flex items-center space-x-2"
           >
             <Plus className="h-5 w-5" />
             <span>Ajoutez une boîte à livres</span>

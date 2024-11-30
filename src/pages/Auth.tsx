@@ -96,15 +96,15 @@ const Auth = () => {
               alt="Logo Bookineo"
               className="h-12 mx-auto"
             />
-            <h2 className="mt-4 text-2xl font-extrabold text-gray-900">
+            <h2 className="mt-4 text-xl font-extrabold text-gray-900">
               {isLogin
-                ? 'Content de vous revoir !'
-                : 'Créer un compte rapidement.'}
+                ? 'Content de vous revoir.'
+                : 'Créer votre compte.'}
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm pt-2 text-gray-500">
               {isLogin
                 ? 'Connectez-vous pour continuer.'
-                : 'Créez votre profile et enrichissez vos quartiers !'}
+                : 'Inscrivez-vous pour continuer.'}
             </p>
           </div>
 
