@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { BookBox, Visit } from '../types';
-import { BookOpen, Navigation, User, Star, Clock, MapPin, X } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, LayersControl } from 'react-leaflet';
+import { BookOpen, Star, X, Navigation, ArrowLeft } from 'lucide-react';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Button from '../components/Button';
 import L from 'leaflet';
 import toast from 'react-hot-toast';
@@ -31,16 +31,20 @@ const VisitModal = ({ isOpen, onClose, onSubmit, loading }: {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Note</label>
             <div className="flex space-x-2">
-              {[1, 2, 3, 4, 5].map((value) => (
-                <button
-                  key={value}
-                  onClick={() => setRating(value)}
-                  className={`p-2 ${value <= rating ? 'text-yellow-400' : 'text-gray-300'}`}
-                >
-                  <Star className="h-6 w-6" />
-                </button>
-              ))}
-            </div>
+  {[1, 2, 3, 4, 5].map((value) => (
+    <button
+      key={value}
+      onClick={() => setRating(value)}
+      className="p-2"
+    >
+      {value <= rating ? (
+        <Star className="h-6 w-6 text-yellow-400 fill-current" />
+      ) : (
+        <Star className="h-6 w-6 text-gray-300" />
+      )}
+    </button>
+  ))}
+</div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Commentaire (optionnel)</label>
@@ -69,7 +73,6 @@ const BoxDetails = () => {
   const [box, setBox] = useState<BookBox | null>(null);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,16 +110,10 @@ const BoxDetails = () => {
             .select('*')
             .eq('box_id', id)
             .eq('visitor_id', user.id)
+            .filter('rating', 'not.is', null)
             .maybeSingle();
-          setHasVisited(!!visitData);
 
-          const { data: favoriteData } = await supabase
-            .from('favorites')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('box_id', id)
-            .maybeSingle();
-          setIsFavorite(!!favoriteData);
+          setHasVisited(!!visitData);
         }
       } catch (error) {
         toast.error('Erreur lors du chargement de la boîte à livres');
@@ -160,38 +157,18 @@ const BoxDetails = () => {
     }
   };
 
-  const toggleFavorite = async () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    try {
-      if (isFavorite) {
-        await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('box_id', id);
-        setIsFavorite(false);
-        toast.success('Retiré des favoris');
-      } else {
-        await supabase
-          .from('favorites')
-          .insert([{ user_id: user.id, box_id: id }]);
-        setIsFavorite(true);
-        toast.success('Ajouté aux favoris');
-      }
-    } catch (error) {
-      toast.error(error.message);
+  const openGoogleMaps = () => {
+    if (box) {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(box.address)}`;
+      window.open(googleMapsUrl, '_blank');
     }
   };
 
   const customIcon = L.icon({
-    iconUrl: 'https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Marker.svg?t=2024-12-01T17%3A20%3A00.235Z', // Remplacez par l'URL de votre icône
-    iconSize: [38, 38], // Taille de l'icône [largeur, hauteur]
-    iconAnchor: [19, 38], // Point d'ancrage de l'icône (au centre inférieur)
-    popupAnchor: [0, -38], // Point où le popup est affiché par rapport à l'icône
+    iconUrl: 'https://example.com/marker-icon.png',
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -38],
   });
 
   if (loading || !box) {
@@ -204,84 +181,79 @@ const BoxDetails = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <button
+        onClick={() => navigate(-1)} // Navigue vers la page précédente
+        className="flex items-center text-primary mb-4"
+      >
+        <ArrowLeft className="mr-2 h-5 w-5" />
+        Retour
+      </button>
       <div className="relative rounded-lg overflow-hidden shadow-lg">
-        {box.image_url ? (
-          <img src={box.image_url} alt={box.name} className="w-full h-64 object-cover" />
-        ) : (
-          <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
-            <img src="https://example.com/youhttps://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Marker.svg?t=2024-12-01T17%3A20%3A00.235Zr-icon-url.png" alt="Book icon" className="h-16 w-16 text-gray-400" />
-          </div>
-        )}
-        {user && (
-          <button
-            onClick={toggleFavorite}
-            className="absolute bottom-4 right-4 bg-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
-            <Star className={`h-6 w-6 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-400'}`} />
-          </button>
-        )}
+        <img src={box.image_url || 'https://via.placeholder.com/300'} alt={box.name} className="w-full h-64 object-cover" />
       </div>
 
       <div className="bg-white p-5 rounded-lg shadow-lg">
-      <div className="flex items-center space-x-2"> 
+      <div className="flex items-center space-x-2">
           <img
             src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Vert.png"
             className="h-8 w-8 text-gray-600"
           />
           <h1 className="text-3xl text-primary font-bold">{box.name}</h1>
         </div>
-        <h3 className="text-xl font-semibold mt-6">Description de la boîte à livres :</h3>
-        <p className="text-gray-700 mt-4">{box.description}</p>
-        <div className="flex justify-center items-center space-x-2 text-sm text-gray-600 mt-8">
-          <Clock className="h-4 w-4" />
-          <span>Ajoutée le {new Date(box.created_at).toLocaleDateString('fr-FR')}</span>
+        <h3 className="text-lg font-semibold mt-4">Description de la boîte à livres :</h3>
+        <p className="text-gray-700 text-base mt-1">{box.description || 'Aucune description disponible.'}</p>
+        
+        <div className="mt-4 flex space-x-2">
+        <Button 
+  onClick={() => setIsVisitModalOpen(true)} 
+  disabled={hasVisited}
+>
+  {hasVisited ? "Boîte à livre déjà visitée" : "Marquer comme visité"}
+</Button>
+          <Button 
+            variant="outline" 
+            onClick={openGoogleMaps}
+          >
+            <Navigation className="mr-2 h-4 w-4" /> S'y rendre
+          </Button>
         </div>
-        <div className="flex justify-center items-center space-x-2 text-sm text-gray-600">
-  <User className="h-4 w-4" />
-  <span>Par {box.creator_username || 'Utilisateur inconnu'}</span>
-</div>
       </div>
 
-      <div className="h-64 bg-white rounded-lg overflow-hidden shadow-lg">
-        <MapContainer
-          center={[box.latitude, box.longitude]}
-          zoom={17}
-          className="h-full"
-          scrollWheelZoom={false}
-          zoomControl={false}
-          doubleClickZoom={false}
-          keyboard={false}
-          touchZoom={false}
-        >
-          <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
-        />
-          <Marker position={[box.latitude, box.longitude]} icon={customIcon} />
-        </MapContainer>
+      <div className="bg-white p-5 rounded-lg shadow-lg">
+        <h2 className="text-2xl font-bold mb-4">Visites et Avis</h2>
+        <ul className="space-y-4 rounded-lg bg-gray-100/70 py-2 px-4">
+          {visits.map((visit) => (
+            <li key={visit.id} className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                  {`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+                </div>
+              )}
+            </div>
+              <div>
+              <p 
+                  className="font-semibold text-primary cursor-pointer" 
+                  onClick={() => navigate(`/user/${visit.visitor.username}`)}
+                >
+                  {visit.visitor.username}
+                </p>
+                <div className="flex space-x-1 text-yellow-400 mb-2">
+                {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-5 w-5 ${i < visit.rating ? 'fill-current' : 'text-gray-300'}`}
+              />
+            ))}
+                  </div>
+                <p className="text-gray-700 mt-1">{visit.comment || "J'ai visité cette boîte à livres."}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-
-      {user && (
-  <div className="flex flex-col space-y-2">
-    {!hasVisited && (
-      <Button onClick={() => setIsVisitModalOpen(true)} fullWidth>
-        Marquer comme visité
-      </Button>
-    )}
-    <Button
-      onClick={() =>
-        window.open(
-          `https://www.google.com/maps/dir/?api=1&destination=${box.latitude},${box.longitude}`,
-          '_blank'
-        )
-      }
-      fullWidth
-      variant='secondary'
-  >
-      S'y rendre
-    </Button>
-  </div>
-)}
 
       <VisitModal
         isOpen={isVisitModalOpen}
@@ -289,45 +261,6 @@ const BoxDetails = () => {
         onSubmit={handleVisitSubmit}
         loading={isSubmitting}
       />
-
-      <div className="space-y-4">
-        <h2 className="text-2xl font-semibold">Avis et visites</h2>
-        {visits.length > 0 ? (
-          visits.map((visit) => (
-            <div key={visit.id} className="bg-white rounded-lg shadow-md p-4 flex items-start space-x-4">
-              <div className="shrink-0">
-                {visit.visitor.avatar_url ? (
-                  <img
-                    src={visit.visitor.avatar_url}
-                    alt={visit.visitor.username}
-                    className="h-12 w-12 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="h-12 w-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-700">
-                    <User className="h-6 w-6" />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">{visit.visitor.username}</h3>
-                  <div className="flex space-x-1 text-yellow-400">
-                    {[...Array(visit.rating)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5" />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-gray-600 text-sm">{visit.comment}</p>
-                <p className="text-gray-400 text-xs mt-1">
-                  Visité le {new Date(visit.visited_at).toLocaleDateString('fr-FR')}
-                </p>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500">Aucune visite enregistrée pour l'instant.</p>
-        )}
-      </div>
     </div>
   );
 };
