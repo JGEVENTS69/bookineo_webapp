@@ -144,3 +144,14 @@ img {
     opacity: 0;
   }
 }
+
+.leaflet-popup-content-wrapper {
+  background: none;
+  box-shadow: none;
+}
+.leaflet-popup-tip {
+  display: none ;
+}
+.leaflet-popup-close-button {
+  display: none !important;
+}

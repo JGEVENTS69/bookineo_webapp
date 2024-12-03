@@ -177,7 +177,7 @@ const Map = () => {
           iconUrl:
             'https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Marker.svg',
           iconSize: isSelected ? [60, 60] : [46, 46],
-          popupAnchor: [0, -30],
+          popupAnchor: [0, -10],
         })
       : new DivIcon({
           className: 'custom-div-icon',
@@ -261,67 +261,67 @@ const Map = () => {
               }}
             >
               <Popup>
-                <div className="w-full">
-                  {box.image_url ? (
-                    <img
-                      src={box.image_url}
-                      alt={box.name}
-                      className="w-full h-40 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-40 bg-gray-100 flex items-center justify-center">
-                      <BookOpen className="h-12 w-12 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="p-4">
-                    <h3 className="text-2xl font-bold mb-2">{box.name}</h3>
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-gray-600">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span className="text-sm">
-                          Ajoutée le {formatDate(box.created_at)}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-gray-600">
-                        <User className="h-4 w-4 mr-2" />
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            navigate(`/user/${box.creator_username}`);
-                          }}
-                          className="text-sm italic hover:text-primary hover:underline"
-                        >
-                          Par {box.creator_username}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => navigate(`/box/${box.id}`)}
-                        className="flex-1 bg-primary text-white py-2 px-4 rounded-md hover:bg-primary-dark transition-colors"
-                      >
-                        Plus d'infos
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (userPosition) {
-                            window.open(
-                              `https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${box.latitude},${box.longitude}`,
-                              '_blank'
-                            );
-                          } else {
-                            toast.error('Veuillez activer la géolocalisation');
-                          }
-                        }}
-                        className="flex-1 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors"
-                      >
-                        Y aller
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Popup>
+  <div className="w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+    {box.image_url ? (
+      <img
+        src={box.image_url}
+        alt={box.name}
+        className="w-full h-48 object-cover"
+      />
+    ) : (
+      <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+        <BookOpen className="h-14 w-14 text-gray-300" />
+      </div>
+    )}
+    <div className="p-5">
+      <h3 className="flex items-center justify-center text-xl font-semibold mb-5 text-primary">{box.name}</h3>
+      <div className="mb-3">
+        <div className="flex items-center text-gray-500">
+          <Clock className="h-5 w-5 mr-2 text-gray-400" />
+          <span className="text-sm">
+            Ajoutée le <strong>{formatDate(box.created_at)}</strong>
+          </span>
+        </div>
+        <div className="flex items-center text-gray-500">
+          <User className="h-5 w-5 mr-2 text-gray-400" />
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              navigate(`/user/${box.creator_username}`);
+            }}
+            className="text-sm italic text-primary hover:underline"
+          >
+            Par {box.creator_username}
+          </button>
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <button
+          onClick={() => navigate(`/box/${box.id}`)}
+          className="flex-1 bg-primary text-white py-2 px-4 rounded-lg shadow-sm hover:bg-primary-dark transition"
+        >
+          Plus d'infos
+        </button>
+        <button
+          onClick={() => {
+            if (userPosition) {
+              window.open(
+                `https://www.google.com/maps/dir/?api=1&origin=${userPosition.lat},${userPosition.lng}&destination=${box.latitude},${box.longitude}`,
+                '_blank'
+              );
+            } else {
+              toast.error('Veuillez activer la géolocalisation');
+            }
+          }}
+          className="flex-1 bg-gray-100 border border-gray-300 text-gray-600 py-2 px-4 rounded-lg shadow-sm hover:bg-gray-200 transition"
+        >
+          Y aller
+        </button>
+      </div>
+    </div>
+  </div>
+</Popup>
             </Marker>
           ))}
         </MapContainer>

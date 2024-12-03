@@ -221,7 +221,7 @@ const BoxDetails = () => {
 
       <div className="bg-white p-5 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Visites et Avis</h2>
-        <ul className="space-y-4 rounded-lg bg-gray-100/70 py-2 px-4">
+        <ul className="space-y-4 rounded-lg bg-gray-100/70é py-2 px-4">
           {visits.map((visit) => (
             <li key={visit.id} className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
