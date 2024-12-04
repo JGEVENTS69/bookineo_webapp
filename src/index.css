@@ -155,3 +155,41 @@ img {
 .leaflet-popup-close-button {
   display: none !important;
 }
+
+/* Champs de formulaire */
+input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+input:focus {
+  border-color: #5a67d8; /* Indigo */
+  box-shadow: 0 0 4px rgba(90, 103, 216, 0.5);
+}
+
+/* Statistiques */
+.stats-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.stats-box:hover {
+  transform: translateY(-5px);
+}
+
+/* Bouton rouge (Suppression de compte) */
+button.delete-account {
+  color: #e53e3e; /* Rouge */
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+button.delete-account:hover {
+  color: #9b2c2c;
+  text-decoration: underline;
+}
