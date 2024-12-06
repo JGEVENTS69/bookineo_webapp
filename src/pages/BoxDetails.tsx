@@ -198,7 +198,7 @@ const BoxDetails = () => {
             src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Vert.png"
             className="h-8 w-8 text-gray-600"
           />
-          <h1 className="text-3xl text-primary font-bold">{box.name}</h1>
+          <h1 className="text-2xl text-primary font-bold">{box.name}</h1>
         </div>
         <h3 className="text-lg font-semibold mt-4">Description de la boîte à livres :</h3>
         <p className="text-gray-700 text-base mt-1">{box.description || 'Aucune description disponible.'}</p>
@@ -208,7 +208,7 @@ const BoxDetails = () => {
   onClick={() => setIsVisitModalOpen(true)} 
   disabled={hasVisited}
 >
-  {hasVisited ? "Boîte à livre déjà visitée" : "Marquer comme visité"}
+  {hasVisited ? "Déjà visité" : "Marquer comme visité"}
 </Button>
           <Button 
             variant="outline" 
