@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { LatLng, Icon, DivIcon } from 'leaflet';
-import { BookOpen, Crosshair, Clock, User, Plus } from 'lucide-react';
+import { BookOpen, Crosshair, Clock, User, Plus, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { BookBox } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -143,6 +143,20 @@ const Map = () => {
   const { location } = useGeolocation();
   const navigate = useNavigate();
 
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Rayon de la Terre en kilomètres
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance en kilomètres
+  };
+
   const defaultPosition: LatLng = new LatLng(46.603354, 1.888334);
   const userPosition = location
     ? new LatLng(location.coords.latitude, location.coords.longitude)
@@ -196,6 +210,7 @@ const Map = () => {
           `,
     iconSize: [12, 12], // Taille de l'icône
   });
+
 
   const style = document.createElement('style');
   style.innerHTML = `
@@ -295,6 +310,20 @@ const Map = () => {
             Par {box.creator_username}
           </button>
         </div>
+        {userPosition && (
+          <div className="flex items-center text-gray-500">
+            <MapPin className="h-5 w-5 mr-2 text-gray-400" />
+            <span className="text-sm">
+              {calculateDistance(
+                userPosition.lat,
+                userPosition.lng,
+                box.latitude,
+                box.longitude
+              ).toFixed(2)}{' '}
+              km de votre position.
+            </span>
+          </div>
+        )}
       </div>
       <div className="flex gap-3">
         <button
