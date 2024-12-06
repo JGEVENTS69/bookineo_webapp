@@ -311,7 +311,7 @@ const Map = () => {
           </button>
         </div>
         {userPosition && (
-          <div className="flex items-center text-gray-500">
+          <div className="flex items-center text-gray-500 mb-6">
             <MapPin className="h-5 w-5 mr-2 text-gray-400" />
             <span className="text-sm">
               {calculateDistance(
