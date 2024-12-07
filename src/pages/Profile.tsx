@@ -23,6 +23,7 @@ const ProfilePage = () => {
   const [boxStats, setBoxStats] = useState({
     boxCount: 0,
     favoriteCount: 0,
+    visitCount: 0,
   });
   const [formData, setFormData] = useState({
     first_name: user?.first_name || '',
@@ -33,6 +34,7 @@ const ProfilePage = () => {
     city: user?.city || '',
     postal_code: user?.postal_code || '',
   });
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAdditionalInfoOpen, setIsAdditionalInfoOpen] = useState(false);
 
@@ -108,17 +110,19 @@ const ProfilePage = () => {
 
       if (uploadError) throw uploadError;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      const newAvatarUrl = data?.publicUrl;
+      if (!newAvatarUrl) throw new Error('URL du nouvel avatar introuvable');
 
       const { error: updateError } = await supabase
         .from('users')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: newAvatarUrl })
         .eq('id', user?.id);
 
       if (updateError) throw updateError;
 
+      setAvatarUrl(newAvatarUrl);
       toast.success('Photo de profil mise à jour');
     } catch (error) {
       toast.error(error.message);
@@ -146,10 +150,10 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-r from-indigo-500 to-purple-500 flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-lg bg-white shadow-xl rounded-3xl overflow-hidden transform transition-transform duration-300 hover:scale-105">
         {/* Header Section */}
-        <div className="relative bg-primary p-6 text-white">
+        <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white rounded-t-3xl">
           <div className="absolute top-4 right-4 flex space-x-2">
             <button
               onClick={() => setIsEditing(!isEditing)}
@@ -161,15 +165,15 @@ const ProfilePage = () => {
 
           <div className="flex flex-col items-center space-y-4">
             <div className="relative group">
-              {user.avatar_url ? (
+              {avatarUrl ? (
                 <img
-                  src={user.avatar_url}
+                  src={avatarUrl}
                   alt="Avatar"
-                  className="h-24 w-24 rounded-full object-cover border-4 border-white/30 shadow-lg"
+                  className="h-28 w-28 rounded-full object-cover border-4 border-white/30 shadow-lg"
                 />
               ) : (
-                <div className="h-24 w-24 rounded-full bg-white/20 flex items-center justify-center">
-                  <User className="h-12 w-12 text-white/70" />
+                <div className="h-28 w-28 rounded-full bg-white/20 flex items-center justify-center">
+                  <User className="h-14 w-14 text-white/70" />
                 </div>
               )}
               <label className="absolute bottom-0 right-0 bg-white/30 backdrop-blur-sm text-white p-2 rounded-full cursor-pointer hover:bg-white/40 transition">
@@ -185,7 +189,7 @@ const ProfilePage = () => {
             </div>
 
             <div className="text-center">
-              <h1 className="text-2xl font-bold mb-2">{user.username}</h1>
+              <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
               <div className="flex items-center justify-center space-x-2 opacity-80">
                 <Mail className="h-5 w-5" />
                 <p className="text-sm">{user.email}</p>
@@ -203,7 +207,7 @@ const ProfilePage = () => {
         <div className="p-6 space-y-4">
           {isEditing ? (
             <form onSubmit={handleUpdateProfile} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-600 mb-2">
                     Nom
@@ -271,7 +275,7 @@ const ProfilePage = () => {
                   />
                 </button>
                 {isAdditionalInfoOpen && (
-                  <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-neutral-600 mb-2">
                         Adresse
@@ -346,7 +350,7 @@ const ProfilePage = () => {
             </form>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-medium text-primary mb-2">Nom</p>
                   <p className="text-lg font-semibold text-neutral-800">
@@ -388,7 +392,7 @@ const ProfilePage = () => {
                   />
                 </button>
                 {isAdditionalInfoOpen && (
-                  <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-medium text-primary mb-1">Adresse</p>
                       <p className="text-base font-semibold text-neutral-800">
@@ -397,7 +401,7 @@ const ProfilePage = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-primary mb-1">Ville</p>
-                      <p className="text-basex font-semibold text-neutral-800">
+                      <p className="text-base font-semibold text-neutral-800">
                         {user.city || 'Non renseigné'}
                       </p>
                     </div>
@@ -482,22 +486,22 @@ const ProfilePage = () => {
                   </div>
 
                   <div className="bg-white rounded-lg p-5 shadow-md">
-  <div className="flex justify-between items-center mb-3">
-    <p className="text-sm text-neutral-500">Visites effectuées</p>
-    <CheckCircle className="h-5 w-5 text-indigo-500" />
-  </div>
-  <p className="text-2xl font-bold text-neutral-800 mb-2">
-  {boxStats.visitCount} / {visitLimit}
-</p>
-  <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
-    <div
-      className="bg-indigo-500 h-2"
-      style={{
-        width: `${Math.min((boxStats.visitCount / visitLimit) * 100, 100)}%`,
-      }}
-    ></div>
-  </div>
-</div>
+                    <div className="flex justify-between items-center mb-3">
+                      <p className="text-sm text-neutral-500">Visites effectuées</p>
+                      <CheckCircle className="h-5 w-5 text-indigo-500" />
+                    </div>
+                    <p className="text-2xl font-bold text-neutral-800 mb-2">
+                      {boxStats.visitCount} / {visitLimit}
+                    </p>
+                    <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-indigo-500 h-2"
+                        style={{
+                          width: `${Math.min((boxStats.visitCount / visitLimit) * 100, 100)}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
                 {isFreemium && (
                   <p className="text-sm text-neutral-500">
