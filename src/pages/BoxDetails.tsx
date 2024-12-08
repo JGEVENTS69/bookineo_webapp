@@ -3,18 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { BookBox, Visit } from '../types';
-import { BookOpen, Star, X, Navigation, ArrowLeft } from 'lucide-react';
+import { BookOpen, Star, X, Navigation, ArrowLeft, Heart } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Button from '../components/Button';
 import L from 'leaflet';
 import toast from 'react-hot-toast';
 
-const VisitModal = ({ isOpen, onClose, onSubmit, loading }: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (rating: number, comment: string) => void;
-  loading: boolean;
-}) => {
+const VisitModal = ({ isOpen, onClose, onSubmit, loading }) => {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
 
@@ -31,20 +26,20 @@ const VisitModal = ({ isOpen, onClose, onSubmit, loading }: {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Note</label>
             <div className="flex space-x-2">
-  {[1, 2, 3, 4, 5].map((value) => (
-    <button
-      key={value}
-      onClick={() => setRating(value)}
-      className="p-2"
-    >
-      {value <= rating ? (
-        <Star className="h-6 w-6 text-yellow-400 fill-current" />
-      ) : (
-        <Star className="h-6 w-6 text-gray-300" />
-      )}
-    </button>
-  ))}
-</div>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <button
+                  key={value}
+                  onClick={() => setRating(value)}
+                  className="p-2"
+                >
+                  {value <= rating ? (
+                    <Star className="h-6 w-6 text-yellow-400 fill-current" />
+                  ) : (
+                    <Star className="h-6 w-6 text-gray-300" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Commentaire (optionnel)</label>
@@ -76,6 +71,7 @@ const BoxDetails = () => {
   const [hasVisited, setHasVisited] = useState(false);
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   useEffect(() => {
     const fetchBoxAndVisits = async () => {
@@ -114,6 +110,15 @@ const BoxDetails = () => {
             .maybeSingle();
 
           setHasVisited(!!visitData);
+
+          const { data: favoriteData } = await supabase
+            .from('favorites')
+            .select('*')
+            .eq('box_id', id)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          setIsFavorite(!!favoriteData);
         }
       } catch (error) {
         toast.error('Erreur lors du chargement de la boîte à livres');
@@ -157,6 +162,31 @@ const BoxDetails = () => {
     }
   };
 
+  const handleFavorite = async () => {
+    if (!user || !id) return;
+    try {
+      if (isFavorite) {
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('box_id', id)
+          .eq('user_id', user.id);
+        if (error) throw error;
+        setIsFavorite(false);
+        toast.success('Boîte retirée de vos favoris');
+      } else {
+        const { error } = await supabase
+          .from('favorites')
+          .insert([{ box_id: id, user_id: user.id }]);
+        if (error) throw error;
+        setIsFavorite(true);
+        toast.success('Boîte ajoutée à vos favoris');
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const openGoogleMaps = () => {
     if (box) {
       const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(box.address)}`;
@@ -189,29 +219,35 @@ const BoxDetails = () => {
         Retour
       </button>
       <div className="relative rounded-lg overflow-hidden shadow-lg">
+        <button
+          onClick={handleFavorite}
+          className="absolute flex items-center justify-center top-4 right-4 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-gray-100 transition-colors"
+        >
+          <Heart className={`h-7 w-7 ${isFavorite ? 'text-red-500' : 'text-gray-400'}`} />
+        </button>
         <img src={box.image_url || 'https://via.placeholder.com/300'} alt={box.name} className="w-full h-64 object-cover" />
       </div>
 
       <div className="bg-white p-5 rounded-lg shadow-lg">
-      <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2">
           <img
             src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Vert.png"
             className="h-8 w-8 text-gray-600"
           />
           <h1 className="text-2xl text-primary font-bold">{box.name}</h1>
         </div>
-        <h3 className="text-lg font-semibold mt-4">Description de la boîte à livres :</h3>
+        <h3 className="text-base font-semibold mt-4">Description de la boîte à livres :</h3>
         <p className="text-gray-700 text-base mt-1">{box.description || 'Aucune description disponible.'}</p>
-        
-        <div className="mt-4 flex space-x-2">
-        <Button 
-  onClick={() => setIsVisitModalOpen(true)} 
-  disabled={hasVisited}
->
-  {hasVisited ? "Déjà visité" : "Marquer comme visité"}
-</Button>
-          <Button 
-            variant="outline" 
+
+        <div className="mt-8 flex items-center justify-center space-x-4">
+          <Button
+            onClick={() => setIsVisitModalOpen(true)}
+            disabled={hasVisited}
+          >
+            {hasVisited ? "Déjà visité" : "Marquer comme visité"}
+          </Button>
+          <Button
+            variant="outline"
             onClick={openGoogleMaps}
           >
             <Navigation className="mr-2 h-4 w-4" /> S'y rendre
@@ -221,33 +257,33 @@ const BoxDetails = () => {
 
       <div className="bg-white p-5 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Visites et Avis</h2>
-        <ul className="space-y-4 rounded-lg bg-gray-100/70é py-2 px-4">
+        <ul className="space-y-4 rounded-lg bg-gray-100/70 p-2 px-4">
           {visits.map((visit) => (
             <li key={visit.id} className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
-              {user.avatar_url ? (
-                <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                  {`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
-                </div>
-              )}
-            </div>
+                {visit.visitor.avatar_url ? (
+                  <img src={visit.visitor.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                    {`${visit.visitor.username?.[0] || ''}${visit.visitor.username?.[1] || ''}`}
+                  </div>
+                )}
+              </div>
               <div>
-              <p 
-                  className="font-semibold text-primary cursor-pointer" 
+                <p
+                  className="font-semibold text-primary cursor-pointer"
                   onClick={() => navigate(`/user/${visit.visitor.username}`)}
                 >
                   {visit.visitor.username}
                 </p>
                 <div className="flex space-x-1 text-yellow-400 mb-2">
-                {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-5 w-5 ${i < visit.rating ? 'fill-current' : 'text-gray-300'}`}
-              />
-            ))}
-                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${i < visit.rating ? 'fill-current' : 'text-gray-300'}`}
+                    />
+                  ))}
+                </div>
                 <p className="text-gray-700 mt-1">{visit.comment || "J'ai visité cette boîte à livres."}</p>
               </div>
             </li>

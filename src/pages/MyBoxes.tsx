@@ -207,7 +207,7 @@ const MyBoxes = () => {
                 Ajoutée le {new Date(box.created_at).toLocaleDateString()}
               </p>
                 <div className="text-sm text-gray-500 flex items-center mt-1 mb-4">
-                    <Navigation className="h-4 w-4 text-gray-400 mr-1" />
+                    <Navigation className="h-4 w-4 mr-2 text-gray-400 mr-1" />
                     <span className="text-sm text-gray-500">
                       Nombres de visites:  {visitCounts[box.id] || 0}
                     </span>
