@@ -78,3 +78,32 @@ using (
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = auth.uid()::text 
 );
+
+-- Politiques pour le stockage
+create policy "Allow public viewing of banner"
+on storage.objects for select
+using ( bucket_id = 'banner' );
+
+create policy "Allow authenticated users to upload banner"
+on storage.objects for insert
+to authenticated
+with check (
+    bucket_id = 'banner'
+    and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create policy "Allow users to update their own banner"
+on storage.objects for update
+to authenticated
+using ( 
+    bucket_id = 'banner'
+    and (storage.foldername(name))[1] = auth.uid()::text 
+);
+
+create policy "Allow users to delete their own banner"
+on storage.objects for delete
+to authenticated
+using ( 
+    bucket_id = 'banner'
+    and (storage.foldername(name))[1] = auth.uid()::text 
+);

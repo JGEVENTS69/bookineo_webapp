@@ -35,6 +35,7 @@ const ProfilePage = () => {
     postal_code: user?.postal_code || '',
   });
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
+  const [bannerUrl, setBannerUrl] = useState(user?.banner_url || '');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAdditionalInfoOpen, setIsAdditionalInfoOpen] = useState(false);
 
@@ -86,7 +87,7 @@ const ProfilePage = () => {
         .eq('id', user?.id);
 
       if (error) throw error;
-      toast.success('Profil mis à jour');
+      toast.success('Profile updated successfully');
       setIsEditing(false);
     } catch (error) {
       toast.error(error.message);
@@ -113,7 +114,7 @@ const ProfilePage = () => {
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
 
       const newAvatarUrl = data?.publicUrl;
-      if (!newAvatarUrl) throw new Error('URL du nouvel avatar introuvable');
+      if (!newAvatarUrl) throw new Error('New avatar URL not found');
 
       const { error: updateError } = await supabase
         .from('users')
@@ -123,7 +124,43 @@ const ProfilePage = () => {
       if (updateError) throw updateError;
 
       setAvatarUrl(newAvatarUrl);
-      toast.success('Photo de profil mise à jour');
+      toast.success('Profile picture updated');
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBannerUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setLoading(true);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `banner/${user?.id}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('banner')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('banner').getPublicUrl(filePath);
+
+      const newBannerUrl = data?.publicUrl;
+      if (!newBannerUrl) throw new Error('New banner URL not found');
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ banner_url: newBannerUrl })
+        .eq('id', user?.id);
+
+      if (updateError) throw updateError;
+
+      setBannerUrl(newBannerUrl);
+      toast.success('Banner image updated');
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -132,15 +169,13 @@ const ProfilePage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (
-      window.confirm('Supprimer votre compte ? Cette action est irréversible.')
-    ) {
+    if (window.confirm('Delete your account? This action cannot be undone.')) {
       try {
         setLoading(true);
         await supabase.from('users').delete().eq('id', user?.id);
         await signOut();
         navigate('/');
-        toast.success('Compte supprimé');
+        toast.success('Account deleted');
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -150,377 +185,415 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-500 to-purple-500 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white shadow-xl rounded-3xl overflow-hidden transform transition-transform duration-300 hover:scale-105">
-        {/* Header Section */}
-        <div className="relative bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white rounded-t-3xl">
-          <div className="absolute top-4 right-4 flex space-x-2">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="hover:bg-white/20 p-2 rounded-full flex justify-center items-center transition"
-            >
-              {isEditing ? <X className="h-6 w-6" /> : <Edit className="h-6 w-6" />}
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center space-y-4">
-            <div className="relative group">
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Avatar"
-                  className="h-28 w-28 rounded-full object-cover border-4 border-white/30 shadow-lg"
-                />
-              ) : (
-                <div className="h-28 w-28 rounded-full bg-white/20 flex items-center justify-center">
-                  <User className="h-14 w-14 text-white/70" />
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-white/30 backdrop-blur-sm text-white p-2 rounded-full cursor-pointer hover:bg-white/40 transition">
-                <Upload className="h-5 w-5" />
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={loading}
-                />
-              </label>
-            </div>
-
-            <div className="text-center">
-              <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
-              <div className="flex items-center justify-center space-x-2 opacity-80">
-                <Mail className="h-5 w-5" />
-                <p className="text-sm">{user.email}</p>
-              </div>
-              <div className="mt-3">
-                <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
-                  {user.subscription}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="p-6 space-y-4">
-          {isEditing ? (
-            <form onSubmit={handleUpdateProfile} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-2">
-                    Nom
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.last_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, last_name: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-2">
-                    Prénom
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.first_name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, first_name: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={user.email}
-                    disabled
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition bg-neutral-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-600 mb-2">
-                    Nom d'utilisateur
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.username}
-                    onChange={(e) =>
-                      setFormData({ ...formData, username: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                  />
-                </div>
-              </div>
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsAdditionalInfoOpen(!isAdditionalInfoOpen)}
-                  className="w-full bg-neutral-100 rounded-xl p-4 flex justify-between items-center"
-                >
-                  <h2 className="text-xl font-bold text-neutral-800">
-                    Informations supplémentaires
-                  </h2>
-                  <ChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      isAdditionalInfoOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {isAdditionalInfoOpen && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-600 mb-2">
-                        Adresse
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.address}
-                        onChange={(e) =>
-                          setFormData({ ...formData, address: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-600 mb-2">
-                        Ville
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.city}
-                        onChange={(e) =>
-                          setFormData({ ...formData, city: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-600 mb-2">
-                        Code Postal
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.postal_code}
-                        onChange={(e) =>
-                          setFormData({ ...formData, postal_code: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-600 mb-2">
-                        Pays
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.country}
-                        onChange={(e) =>
-                          setFormData({ ...formData, country: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="flex items-center bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    'Enregistrement...'
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-5 w-5" />
-                      Enregistrer
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-primary mb-2">Nom</p>
-                  <p className="text-lg font-semibold text-neutral-800">
-                    {user.last_name || 'Non renseigné'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-primary mb-2">Prénom</p>
-                  <p className="text-lg font-semibold text-neutral-800">
-                    {user.first_name || 'Non renseigné'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-primary mb-2">Email</p>
-                  <p className="text-lg font-semibold text-neutral-800">
-                    {user.email}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-primary mb-2">Nom d'utilisateur</p>
-                  <p className="text-lg font-semibold text-neutral-800">
-                    {user.username}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAdditionalInfoOpen(!isAdditionalInfoOpen)}
-                  className="w-full flex justify-between items-center"
-                >
-                  <h2 className="pl-2 text-lg font-bold text-neutral-800">
-                    Informations supplémentaires :
-                  </h2>
-                  <ChevronDown
-                    className={`h-5 w-5 transition-transform ${
-                      isAdditionalInfoOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {isAdditionalInfoOpen && (
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-primary mb-1">Adresse</p>
-                      <p className="text-base font-semibold text-neutral-800">
-                        {user.address || 'Non renseigné'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary mb-1">Ville</p>
-                      <p className="text-base font-semibold text-neutral-800">
-                        {user.city || 'Non renseigné'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary mb-1 mt-4">Code Postal</p>
-                      <p className="text-base font-semibold text-neutral-800">
-                        {user.postal_code || 'Non renseigné'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-primary mb-1 mt-4">Pays</p>
-                      <p className="text-base font-semibold text-neutral-800">
-                        {user.country || 'Non renseigné'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Stats Section */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {/* Header */}
           <div className="relative">
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full bg-neutral-100 rounded-xl p-4 flex justify-between items-center"
-            >
-              <h2 className="text-xl font-bold text-neutral-800">
-                Plan Freemium
-              </h2>
-              <ChevronDown
-                className={`h-5 w-5 transition-transform ${
-                  isDropdownOpen ? 'rotate-180' : ''
-                }`}
+            {bannerUrl ? (
+              <img
+                src={bannerUrl}
+                alt="Banner"
+                className="w-full h-48 object-cover"
               />
-            </button>
-            {isDropdownOpen && (
-              <div className="mt-4 bg-neutral-100 rounded-xl p-4 space-y-6">
+            ) : (
+              <div className="w-full h-48 bg-slate-100 flex items-center justify-center">
+                <Upload className="w-16 h-16 text-slate-400" />
+              </div>
+            )}
+            <label className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-slate-50 transition-colors">
+              <Upload className="w-5 h-5 text-slate-600" />
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleBannerUpload}
+                disabled={loading}
+              />
+            </label>
+            <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
+              <div className="relative group">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center shadow-lg">
+                    <User className="w-16 h-16 text-slate-400" />
+                  </div>
+                )}
+                <label className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                  <Upload className="w-5 h-5 text-slate-600" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={loading}
+                  />
+                </label>
+              </div>
+              <div className="mb-12">
+                <h1 className="text-2xl font-bold text-white">{user.username}</h1>
+                <div className="flex items-center text-white/80 space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="text-sm">{user.email}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-8">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors"
+              >
+                {isEditing ? (
+                  <X className="w-6 h-6 text-black" />
+                ) : (
+                  <Edit className="w-6 h-6 text-black" />
+                )}
+              </button>
+            </div>
+            {isEditing ? (
+              <form onSubmit={handleUpdateProfile} className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary">
+                      Nom
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.first_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, first_name: e.target.value })
+                      }
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary">
+                      Prénom
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.last_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, last_name: e.target.value })
+                      }
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary">
+                      Pseudo Bookineo
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) =>
+                        setFormData({ ...formData, username: e.target.value })
+                      }
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-primary">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={user.email}
+                      disabled
+                      className="w-full px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-500"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-4">
-                  {/* Boîtes Créées */}
-                  <div className="bg-white rounded-lg p-5 shadow-md">
-                    <div className="flex justify-between items-center mb-3">
-                      <p className="text-sm text-neutral-500">Boîtes ajoutées</p>
-                      <CheckCircle className="h-5 w-5 text-indigo-500" />
+                  <button
+                    type="button"
+                    onClick={() => setIsAdditionalInfoOpen(!isAdditionalInfoOpen)}
+                    className="flex items-center justify-between w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span className="font-medium">Autres informations</span>
+                    <ChevronDown
+                      className={`w-5 h-5 transition-transform duration-200 ${
+                        isAdditionalInfoOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {isAdditionalInfoOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-lg">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-primary">
+                          Adresse
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.address}
+                          onChange={(e) =>
+                            setFormData({ ...formData, address: e.target.value })
+                          }
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-primary">
+                          Ville
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.city}
+                          onChange={(e) =>
+                            setFormData({ ...formData, city: e.target.value })
+                          }
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-primary">
+                          Code Postal
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.postal_code}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              postal_code: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-primary">
+                          Pays
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.country}
+                          onChange={(e) =>
+                            setFormData({ ...formData, country: e.target.value })
+                          }
+                          className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+                        />
+                      </div>
                     </div>
-                    <p className="text-2xl font-bold text-neutral-800 mb-2">
-                      {boxStats.boxCount} / {boxLimit}
+                  )}
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center space-x-2"
+                  >
+                    <Save className="w-5 h-5" />
+                    <span>{loading ? 'Enregistrement...' : 'Enregistrer'}</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-sm font-bold text-primary">
+                      Nom
+                    </h3>
+                    <p className="mt-1 text-slate-900">
+                      {user.first_name || 'Not specified'}
                     </p>
-                    <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-primary">
+                      Prénom
+                    </h3>
+                    <p className="mt-1 text-slate-900">
+                      {user.last_name || 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-primary">
+                      Pseudo Bookineo
+                    </h3>
+                    <p className="mt-1 text-slate-900">{user.username}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-primary">Email</h3>
+                    <p className="mt-1 text-slate-900">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsAdditionalInfoOpen(!isAdditionalInfoOpen)}
+                    className="flex items-center justify-between w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span className="font-medium">Autres informations</span>
+                    <ChevronDown
+                      className={`w-5 h-5 transition-transform duration-200 ${
+                        isAdditionalInfoOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+
+                  {isAdditionalInfoOpen && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-lg">
+                      <div>
+                        <h3 className="text-sm font-bold text-primary">
+                          Adresse
+                        </h3>
+                        <p className="mt-1 text-slate-900">
+                          {user.address || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-primary">
+                          Ville
+                        </h3>
+                        <p className="mt-1 text-slate-900">
+                          {user.city || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-primary">
+                          Code Postal
+                        </h3>
+                        <p className="mt-1 text-slate-900">
+                          {user.postal_code || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-primary">
+                          Pays
+                        </h3>
+                        <p className="mt-1 text-slate-900">
+                          {user.country || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Stats Section */}
+            <div className="mt-8">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center bg-[#d8596e]/80 justify-between w-full px-4 py-2 text-left text-slate-700 hover:bg-[#d8596e] rounded-lg transition-colors"
+              >
+                <span className="font-medium text-white">
+                  {isFreemium ? 'Plan Freemium' : 'Premium Plan'}
+                </span>
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform duration-200 text-white ${
+                    isDropdownOpen ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-medium text-slate-600">
+                        Boîtes à livres ajoutées
+                      </h3>
+                      <CheckCircle className="w-5 h-5 text-primary" />
+                    </div>
+                    <p className="text-2xl font-bold text-slate-900">
+                      {boxStats.boxCount}
+                      <span className="text-sm font-normal text-slate-500 ml-1">
+                        / {boxLimit === Infinity ? '∞' : boxLimit}
+                      </span>
+                    </p>
+                    <div className="mt-2 w-full bg-slate-100 rounded-full h-2">
                       <div
-                        className="bg-indigo-500 h-2"
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{
                           width: `${Math.min(
                             (boxStats.boxCount / boxLimit) * 100,
                             100
                           )}%`,
                         }}
-                      ></div>
+                      />
                     </div>
                   </div>
 
-                  {/* Favoris */}
-                  <div className="bg-white rounded-lg p-5 shadow-md">
-                    <div className="flex justify-between items-center mb-3">
-                      <p className="text-sm text-neutral-500">Boîte favoris</p>
-                      <CheckCircle className="h-5 w-5 text-purple-500" />
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-medium text-slate-600">
+                        Boîte à livres favoris
+                      </h3>
+                      <CheckCircle className="w-5 h-5 text-secondary" />
                     </div>
-                    <p className="text-2xl font-bold text-neutral-800 mb-2">
-                      {boxStats.favoriteCount} / {favoriteLimit}
+                    <p className="text-2xl font-bold text-slate-900">
+                      {boxStats.favoriteCount}
+                      <span className="text-sm font-normal text-slate-500 ml-1">
+                        / {favoriteLimit === Infinity ? '∞' : favoriteLimit}
+                      </span>
                     </p>
-                    <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                    <div className="mt-2 w-full bg-slate-100 rounded-full h-2">
                       <div
-                        className="bg-purple-500 h-2"
+                        className="bg-secondary h-2 rounded-full transition-all duration-300"
                         style={{
                           width: `${Math.min(
                             (boxStats.favoriteCount / favoriteLimit) * 100,
                             100
                           )}%`,
                         }}
-                      ></div>
+                      />
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-lg p-5 shadow-md">
-                    <div className="flex justify-between items-center mb-3">
-                      <p className="text-sm text-neutral-500">Visites effectuées</p>
-                      <CheckCircle className="h-5 w-5 text-indigo-500" />
+                  <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-sm font-medium text-slate-600">
+                        Boîtes à livres visitées
+                      </h3>
+                      <CheckCircle className="w-5 h-5 text-primary" />
                     </div>
-                    <p className="text-2xl font-bold text-neutral-800 mb-2">
-                      {boxStats.visitCount} / {visitLimit}
+                    <p className="text-2xl font-bold text-slate-900">
+                      {boxStats.visitCount}
+                      <span className="text-sm font-normal text-slate-500 ml-1">
+                        / {visitLimit === Infinity ? '∞' : visitLimit}
+                      </span>
                     </p>
-                    <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                    <div className="mt-2 w-full bg-slate-100 rounded-full h-2">
                       <div
-                        className="bg-indigo-500 h-2"
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
                         style={{
-                          width: `${Math.min((boxStats.visitCount / visitLimit) * 100, 100)}%`,
+                          width: `${Math.min(
+                            (boxStats.visitCount / visitLimit) * 100,
+                            100
+                          )}%`,
                         }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>
-                {isFreemium && (
-                  <p className="text-sm text-neutral-500">
-                    Passez en version premium pour bénéficier de plus de fonctionnalités.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Delete Account */}
-          <div className="text-center">
-            <button
-              onClick={handleDeleteAccount}
-              className="text-sm font-medium text-red-600 hover:text-red-700 hover:underline transition"
-            >
-              <Trash2 className="inline-block mr-2 h-5 w-5" />
-              Supprimer le compte
-            </button>
+            {/* Delete Account */}
+            <div className="mt-8 pt-8 border-t border-slate-200">
+              <button
+                onClick={handleDeleteAccount}
+                className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center space-x-2 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Supprimer mon compte</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
