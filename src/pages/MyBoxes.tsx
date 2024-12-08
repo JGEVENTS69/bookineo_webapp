@@ -200,7 +200,7 @@ const MyBoxes = () => {
                 </div>
               )}
               <div className="p-4">
-                <h3 className="text-lg font-semibold mb-2">{box.name}</h3>
+                <h3 className="text-lg font-bold mb-2 text-primary">{box.name}</h3>
     
                 <p className="text-sm text-gray-500 flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" /> {/* Icône avant la date */}

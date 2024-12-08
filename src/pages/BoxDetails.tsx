@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/authStore';
 import { BookBox, Visit } from '../types';
 import { BookOpen, Star, X, Navigation, ArrowLeft, Heart } from 'lucide-react';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import Button from '../components/Button';
 import L from 'leaflet';
 import toast from 'react-hot-toast';
@@ -195,10 +195,9 @@ const BoxDetails = () => {
   };
 
   const customIcon = L.icon({
-    iconUrl: 'https://example.com/marker-icon.png',
+    iconUrl: 'https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Marker.svg',
     iconSize: [38, 38],
     iconAnchor: [19, 38],
-    popupAnchor: [0, -38],
   });
 
   if (loading || !box) {
@@ -289,6 +288,18 @@ const BoxDetails = () => {
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="bg-white p-5 rounded-lg shadow-lg">
+        <h2 className="text-xl font-bold mb-4">Emplacement de la Boîte à Livres</h2>
+        <MapContainer center={[box.latitude, box.longitude]} zoom={13} style={{ height: "180px", width: "100%" }}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <Marker position={[box.latitude, box.longitude]} icon={customIcon}>
+          </Marker>
+        </MapContainer>
       </div>
 
       <VisitModal
