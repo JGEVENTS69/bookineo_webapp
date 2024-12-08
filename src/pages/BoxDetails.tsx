@@ -127,6 +127,12 @@ const BoxDetails = () => {
         setLoading(false);
       }
     };
+
+    const zoomControl = document.querySelector(".leaflet-control-zoom");
+    if (zoomControl) {
+      zoomControl.style.display = "none";
+    }
+    
     fetchBoxAndVisits();
   }, [id, user, navigate]);
 
@@ -237,6 +243,19 @@ const BoxDetails = () => {
         </div>
         <h3 className="text-base font-semibold mt-4">Description de la boîte à livres :</h3>
         <p className="text-gray-700 text-base mt-1">{box.description || 'Aucune description disponible.'}</p>
+        <h2 className="text-base font-semibold mt-4 mb-4">Localisation de la Boîte à Livres</h2>
+        <MapContainer center={[box.latitude, box.longitude]} zoom={16} style=
+        {{ height: "180px", width: "100%", borderRadius: "15px", overflow: "hidden" }}
+        doubleClickZoom={false} // Désactive le zoom par double-clic
+        zoomControl={false}
+      >
+          <TileLayer
+            url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <Marker position={[box.latitude, box.longitude]} icon={customIcon}>
+          </Marker>
+        </MapContainer>
 
         <div className="mt-8 flex items-center justify-center space-x-4">
           <Button
@@ -253,6 +272,7 @@ const BoxDetails = () => {
           </Button>
         </div>
       </div>
+
 
       <div className="bg-white p-5 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Visites et Avis</h2>
@@ -288,18 +308,6 @@ const BoxDetails = () => {
             </li>
           ))}
         </ul>
-      </div>
-
-      <div className="bg-white p-5 rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Emplacement de la Boîte à Livres</h2>
-        <MapContainer center={[box.latitude, box.longitude]} zoom={13} style={{ height: "180px", width: "100%" }}>
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          <Marker position={[box.latitude, box.longitude]} icon={customIcon}>
-          </Marker>
-        </MapContainer>
       </div>
 
       <VisitModal

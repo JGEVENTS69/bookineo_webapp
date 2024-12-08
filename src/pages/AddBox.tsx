@@ -178,7 +178,7 @@ const AddBox = () => {
                   zoom={mapZoom}
                   className="h-[400px] z-0"
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <TileLayer url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}" />
                   {userLocation && <UserLocationMarker location={userLocation} />}
                   <LocationPicker onLocationSelect={setLocation} />
                   <GeolocationButton onLocationFound={setUserLocation} />
