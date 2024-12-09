@@ -190,6 +190,7 @@ const ProfilePage = () => {
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="relative">
+          <div className="w-full h-48 bg-slate-400 flex items-center justify-center">
             {bannerUrl ? (
               <img
                 src={bannerUrl}
@@ -197,9 +198,10 @@ const ProfilePage = () => {
                 className="w-full h-48 object-cover"
               />
             ) : (
-              <div className="w-full h-48 bg-slate-100 flex items-center justify-center">
-                <Upload className="w-16 h-16 text-slate-400" />
-              </div>
+              <img 
+              src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Logo-Blanc.png"
+              className="w-80 h-35 opacity-40"
+              />
             )}
             <label className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-slate-50 transition-colors">
               <Upload className="w-5 h-5 text-slate-600" />
@@ -212,19 +214,21 @@ const ProfilePage = () => {
               />
             </label>
             <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
-              <div className="relative group">
+            <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-primary flex items-center justify-center">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
                     alt="Avatar"
-                    className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
+                    className="w-32 h-32 rounded-full object-cover shadow-lg"
                   />
                 ) : (
-                  <div className="w-32 h-32 rounded-full border-4 border-white bg-slate-100 flex items-center justify-center shadow-lg">
-                    <User className="w-16 h-16 text-slate-400" />
-                  </div>
-                )}
-                <label className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                  <img
+             src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Blanc.png"
+             alt="Default Avatar"
+              className="w-14 h-14 mr-2 mt-1"
+             />
+           )}
+                <label className="absolute bottom-0 ml-20 p-2 bg-white rounded-full shadow-lg cursor-pointer hover:bg-slate-50 transition-colors">
                   <Upload className="w-5 h-5 text-slate-600" />
                   <input
                     type="file"
@@ -237,10 +241,11 @@ const ProfilePage = () => {
               </div>
               <div className="mb-12">
                 <h1 className="text-2xl font-bold text-white">{user.username}</h1>
-                <div className="flex items-center text-white/80 space-x-2">
+                <div className="flex items-center mt-1 text-white space-x-2">
                   <Mail className="w-4 h-4" />
                   <span className="text-sm">{user.email}</span>
                 </div>
+              </div>
               </div>
             </div>
           </div>
@@ -256,6 +261,7 @@ const ProfilePage = () => {
                   <X className="w-6 h-6 text-black" />
                 ) : (
                   <Edit className="w-6 h-6 text-black" />
+                  
                 )}
               </button>
             </div>

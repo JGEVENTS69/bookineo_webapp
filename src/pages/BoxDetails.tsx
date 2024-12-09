@@ -133,7 +133,7 @@ const BoxDetails = () => {
     if (zoomControl) {
       zoomControl.style.display = "none";
     }
-    
+
     fetchBoxAndVisits();
   }, [id, user, navigate]);
 
@@ -244,49 +244,48 @@ const BoxDetails = () => {
         </div>
         <h3 className="text-base font-semibold mt-4">Description de la boîte à livres :</h3>
         <p className="text-gray-700 text-base mt-1">{box.description || 'Aucune description disponible.'}</p>
-        
-        <div className="mt-8">
-      {/* Bouton pour ouvrir/fermer le dropdown */}
-      <button
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="flex items-center bg-transparent justify-between w-full py-2 text-left text-slate-700 hover:text-primary rounded-lg transition-colors"
-      >
-        <span className="font-medium text-slate-700">Afficher l'emplacement</span>
-        <ChevronDown
-          className={`w-5 h-5 transition-transform duration-200 ${
-            isDropdownOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
 
-      {/* Dropdown contenant la carte */}
-      {isDropdownOpen && (
-        <div className="mt-4">
-          <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-            <div style={{ position: "relative", height: "200px", width: "100%" }}>
-              <MapContainer
-                center={[box.latitude, box.longitude]}
-                zoom={16}
-                style={{
-                  height: "200px",
-                  width: "100%",
-                  borderRadius: "15px",
-                  overflow: "hidden",
-                }}
-                doubleClickZoom={false}
-                zoomControl={false}
-              >
-                <TileLayer
-                  url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={[box.latitude, box.longitude]} icon={customIcon} />
-              </MapContainer>
+        <div className="mt-8">
+          {/* Bouton pour ouvrir/fermer le dropdown */}
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center bg-transparent justify-between w-full py-2 text-left text-slate-700 hover:text-primary rounded-lg transition-colors"
+          >
+            <span className="font-medium text-slate-700">Afficher l'emplacement</span>
+            <ChevronDown
+              className={`w-5 h-5 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""
+                }`}
+            />
+          </button>
+
+          {/* Dropdown contenant la carte */}
+          {isDropdownOpen && (
+            <div className="mt-4">
+              <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                <div style={{ position: "relative", height: "200px", width: "100%" }}>
+                  <MapContainer
+                    center={[box.latitude, box.longitude]}
+                    zoom={16}
+                    style={{
+                      height: "200px",
+                      width: "100%",
+                      borderRadius: "15px",
+                      overflow: "hidden",
+                    }}
+                    doubleClickZoom={false}
+                    zoomControl={false}
+                  >
+                    <TileLayer
+                      url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <Marker position={[box.latitude, box.longitude]} icon={customIcon} />
+                  </MapContainer>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
-    </div>
 
         <div className="mt-8 flex items-center justify-center space-x-4">
           <Button
@@ -308,42 +307,44 @@ const BoxDetails = () => {
       <div className="bg-white p-5 rounded-lg shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Visites et Avis</h2>
         <ul className="space-y-4">
-  {visits.map((visit) => (
-    <li
-      key={visit.id}
-      className="flex flex-col space-y-2 bg-gray-100/70 p-4 rounded-lg shadow-md"
-    >
-      <div className="flex items-center space-x-4">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
-          {visit.visitor.avatar_url ? (
-            <img src={visit.visitor.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-white font-bold">
-              {`${visit.visitor.username?.[0] || ''}${visit.visitor.username?.[1] || ''}`}
-            </div>
-          )}
-        </div>
-        <div>
-          <p
-            className="font-semibold text-primary cursor-pointer"
-            onClick={() => navigate(`/user/${visit.visitor.username}`)}
-          >
-            {visit.visitor.username}
-          </p>
-          <div className="flex space-x-1 text-yellow-400 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`h-5 w-5 ${i < visit.rating ? 'fill-current' : 'text-gray-300'}`}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-      <p className="text-gray-700 mt-1">{visit.comment || "J'ai visité cette boîte à livres."}</p>
-    </li>
-  ))}
-</ul>
+          {visits.map((visit) => (
+            <li
+              key={visit.id}
+              className="flex flex-col space-y-2 bg-gray-100/70 p-4 rounded-lg shadow-md"
+            >
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-full overflow-hidden bg-primary flex items-center justify-center">
+                  {visit.visitor.avatar_url ? (
+                    <img src={visit.visitor.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <img
+                      src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Blanc.png"
+                      alt="Default Avatar"
+                      className="w-7 h-7 mr-1"
+                    />
+                  )}
+                </div>
+                <div>
+                  <p
+                    className="font-semibold text-primary cursor-pointer"
+                    onClick={() => navigate(`/user/${visit.visitor.username}`)}
+                  >
+                    {visit.visitor.username}
+                  </p>
+                  <div className="flex space-x-1 text-yellow-400 mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-5 w-5 ${i < visit.rating ? 'fill-current' : 'text-gray-300'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <p className="text-gray-700 mt-1">{visit.comment || "J'ai visité cette boîte à livres."}</p>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <VisitModal

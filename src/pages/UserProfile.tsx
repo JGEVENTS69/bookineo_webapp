@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { User, BookBox } from '../types';
-import { BookOpen, User as UserIcon, Mail, Crown, MapPin, CheckCircle, ChevronDown, Star, UserRound, Calendar, Navigation } from 'lucide-react';
+import { BookOpen, User as UserIcon, Mail, Crown, MapPin, CheckCircle, ChevronDown, Star, UserRound, Calendar, Navigation, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const UserProfile = () => {
@@ -96,46 +96,54 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 sm:p-6 md:p-8">
+      <button
+        onClick={() => navigate(-1)} // Navigue vers la page précédente
+        className="flex items-center text-primary mb-4"
+      >
+        <ArrowLeft className="mr-2 h-5 w-5" />
+        Retour
+      </button>
+
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
           <div className="relative">
-           <div className="w-full h-48 bg-slate-400 flex items-center justify-center">
-            {user.banner_url ? (
-              <img
-                src={user.banner_url}
-                alt="Banner"
-                className="w-full h-48 object-cover"
-              />
-            ) : (
-              <img 
-              src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Logo-Blanc.png"
-              className="w-80 h-35 opacity-40"
-              />
-            )}
-            <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
-            <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-primary flex items-center justify-center">
-            {user.avatar_url ? (
-             <img
-               src={user.avatar_url}
-                alt="Avatar"
-              className="w-32 h-32 rounded-full object-cover shadow-lg"
-              />
-             ) : (
-           <img
-             src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Blanc.png"
-             alt="Default Avatar"
-              className="w-14 h-14 mr-2 mt-1"
-             />
-           )}
-          </div>
-              <div className="mb-12">
-                <h1 className="text-2xl font-bold text-white">{user.username}</h1>
-                <div className="flex items-center text-white space-x-2">
-                  <Mail className="w-4 h-4" />
-                  <span className="text-sm">{user.email}</span>
+            <div className="w-full h-48 bg-slate-400 flex items-center justify-center">
+              {user.banner_url ? (
+                <img
+                  src={user.banner_url}
+                  alt="Banner"
+                  className="w-full h-48 object-cover"
+                />
+              ) : (
+                <img
+                  src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Logo-Blanc.png"
+                  className="w-80 h-35 opacity-40"
+                />
+              )}
+              <div className="absolute -bottom-10 left-8 flex items-end space-x-4">
+                <div className="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-primary flex items-center justify-center">
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt="Avatar"
+                      className="w-32 h-32 rounded-full object-cover shadow-lg"
+                    />
+                  ) : (
+                    <img
+                      src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Blanc.png"
+                      alt="Default Avatar"
+                      className="w-14 h-14 mr-2 mt-1"
+                    />
+                  )}
                 </div>
-              </div>
+                <div className="mb-12">
+                  <h1 className="text-2xl font-bold text-white">{user.username}</h1>
+                  <div className="flex items-center text-white space-x-2">
+                    <Mail className="w-4 h-4" />
+                    <span className="text-sm">{user.email}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -227,41 +235,47 @@ const UserProfile = () => {
                     {visitedBoxes.map((visit) => (
                       <div
                         key={visit.box_id}
-                        className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer"
+                        className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 cursor-pointer relative"
                         onClick={() => navigate(`/box/${visit.box_id}`)}
                       >
-                        {visit.book_boxes.image_url ? (
-                          <img
-                            src={visit.book_boxes.image_url}
-                            alt={visit.book_boxes.name}
-                            className="w-full h-48 object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-48 bg-gray-50 flex items-center justify-center">
-                            <BookOpen className="h-12 w-12 text-gray-400" />
+                        <div className="relative">
+                          {visit.book_boxes.image_url ? (
+                            <img
+                              src={visit.book_boxes.image_url}
+                              alt={visit.book_boxes.name}
+                              className="w-full h-48 object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-48 bg-gray-50 flex items-center justify-center">
+                              <BookOpen className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="absolute bottom-2 right-2 flex space-x-1 text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-7 w-7 ${i < visit.rating ? 'fill-current text-yellow-400' : 'text-gray-300'}`}
+                              />
+                            ))}
                           </div>
-                        )}
+                        </div>
                         <div className="p-4">
-                          <h3 className="text-lg text-primary font-bold mb-2">{visit.book_boxes.name}</h3>
-                          <div className="text-sm text-gray-500 flex items-center mt-1 mb-4">
-                          <Navigation className="h-4 w-4 mr-2 text-gray-400 mr-1" />
-                          <span className="text-sm text-gray-500">
-                              Visitée le {new Date(visit.visited_at).toLocaleDateString()}
-                           </span>
-                          </div>
+                          <h3 className="text-xl text-primary font-bold mb-3">{visit.book_boxes.name}</h3>
                           {visit.comment && (
                             <p className="text-sm text-gray-600 mt-2">{visit.comment}</p>
                           )}
-                          <div className="flex items-center mt-2">
-                            {[...Array(visit.rating)].map((_, index) => (
-                              <Star key={index} className="w-4 h-4 text-yellow-500" />
-                            ))}
+                          <div className="text-sm text-gray-500 flex items-center mt-5 mb-4">
+                            <Navigation className="h-4 w-4 mr-2 text-gray-400 mr-1" />
+                            <span className="text-sm text-gray-500">
+                              Visitée le {new Date(visit.visited_at).toLocaleDateString()}
+                            </span>
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
           </div>
