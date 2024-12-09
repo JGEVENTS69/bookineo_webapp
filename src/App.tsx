@@ -19,6 +19,7 @@ import BoxDetails from './pages/BoxDetails';
 import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
+import Settings from './pages/Settings'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore();
@@ -108,6 +109,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MyBoxes />
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />
