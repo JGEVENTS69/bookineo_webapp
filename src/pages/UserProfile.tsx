@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { User, BookBox } from '../types';
-import { BookOpen, User as UserIcon, Mail, Crown, MapPin, CheckCircle, ChevronDown, Star, UserRound } from 'lucide-react';
+import { BookOpen, User as UserIcon, Mail, Crown, MapPin, CheckCircle, ChevronDown, Star, UserRound, Calendar, Navigation } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const UserProfile = () => {
@@ -119,7 +119,7 @@ const UserProfile = () => {
              <img
                src={user.avatar_url}
                 alt="Avatar"
-              className="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg"
+              className="w-32 h-32 rounded-full object-cover shadow-lg"
               />
              ) : (
            <img
@@ -177,7 +177,7 @@ const UserProfile = () => {
                   />
                 </button>
                 {isBoxesDropdownOpen && (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="mt-5 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {boxes.map((box) => (
                       <div
                         key={box.id}
@@ -196,17 +196,11 @@ const UserProfile = () => {
                           </div>
                         )}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold mb-2">{box.name}</h3>
-                          <div className="flex items-center text-gray-600">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            <p className="text-sm">
-                              {new Date(box.created_at).toLocaleDateString('fr-FR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </p>
-                          </div>
+                          <h3 className="text-lg text-primary font-bold mb-2">{box.name}</h3>
+                          <p className="text-sm text-gray-500 flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-gray-400" /> {/* Icône avant la date */}
+                            Ajoutée le {new Date(box.created_at).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -229,7 +223,7 @@ const UserProfile = () => {
                   />
                 </button>
                 {isVisitedBoxesDropdownOpen && (
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="mt-5 mb-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {visitedBoxes.map((visit) => (
                       <div
                         key={visit.box_id}
@@ -248,16 +242,12 @@ const UserProfile = () => {
                           </div>
                         )}
                         <div className="p-4">
-                          <h3 className="text-lg font-semibold mb-2">{visit.book_boxes.name}</h3>
-                          <div className="flex items-center text-gray-600">
-                            <MapPin className="h-4 w-4 mr-2" />
-                            <p className="text-sm">
-                              {new Date(visit.visited_at).toLocaleDateString('fr-FR', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                            </p>
+                          <h3 className="text-lg text-primary font-bold mb-2">{visit.book_boxes.name}</h3>
+                          <div className="text-sm text-gray-500 flex items-center mt-1 mb-4">
+                          <Navigation className="h-4 w-4 mr-2 text-gray-400 mr-1" />
+                          <span className="text-sm text-gray-500">
+                              Visitée le {new Date(visit.visited_at).toLocaleDateString()}
+                           </span>
                           </div>
                           {visit.comment && (
                             <p className="text-sm text-gray-600 mt-2">{visit.comment}</p>
