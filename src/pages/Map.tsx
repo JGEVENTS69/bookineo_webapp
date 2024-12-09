@@ -218,7 +218,7 @@ const Map = () => {
     width: 12px;
     height: 12px;
     border-radius: 100%;
-    background-color: #d8596e;
+    background-color: #3a7c6a;
     box-shadow: 0 0 0 rgba(66, 133, 244, 0.4);
     animation: pulse 1.5s infinite;
   }
