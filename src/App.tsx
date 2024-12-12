@@ -20,6 +20,7 @@ import Auth from './pages/Auth';
 import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Settings from './pages/Settings'
+import MapSignal from './pages/MapSignal';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore();
@@ -141,6 +142,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <UserProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/map-signal"
+                element={
+                  <ProtectedRoute>
+                    <MapSignal/>
                   </ProtectedRoute>
                 }
               />
