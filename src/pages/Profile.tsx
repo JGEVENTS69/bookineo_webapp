@@ -498,7 +498,7 @@ const ProfilePage = () => {
                 className="flex items-center bg-[#d8596e]/80 justify-between w-full px-4 py-2 text-left text-slate-700 hover:bg-[#d8596e] rounded-lg transition-colors"
               >
                 <span className="font-medium text-white">
-                  {isFreemium ? 'Plan Freemium' : 'Premium Plan'}
+                  {isFreemium ? 'Plan Freemium' : 'Statistiques Bookineo'}
                 </span>
                 <ChevronDown
                   className={`w-5 h-5 transition-transform duration-200 text-white ${

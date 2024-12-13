@@ -240,15 +240,16 @@ const MapSignal = () => {
 
                     <LocationButton />
 
-                    
-                    <div className="leaflet-bottom w-full" style={{ 
+
+                    <div className="leaflet-bottom w-full" style={{
                         position: 'absolute',
                         bottom: '24px',
-          left: '50%',
-          transform: 'translateX(-50%)', }}>
-                        <div className="flex justify-center w-full">
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                    }}>
+                        <div className="flex justify-center w-full mb-3">
                             <div className="text-base font-bold text-black">
-                            Sélectionnez la boîte à signaler.
+                                Sélectionnez la boîte à signaler.
                             </div>
                         </div>
                     </div>
@@ -306,7 +307,7 @@ const MapSignal = () => {
                                                     e.stopPropagation();
                                                     openModal();
                                                 }}
-                                                className="bg-red-500 text-sm text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center space-x-2"
+                                                className="bg-[#d8596e] text-sm text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center space-x-2"
                                             >
                                                 <AlertCircle className="h-4 w-4" />
                                                 <span>Signaler cette boîte à livre</span>
@@ -333,36 +334,36 @@ const MapSignal = () => {
                                 className="h-7 w-7 text-gray-600"
                             />
                             <h1 className="text-2xl text-primary font-bold">{selectedBox.name}</h1>
-                        </div> 
-                    <div className="mb-4">
-                        <label className="block text-gray-600 text-sm font-medium mb-2">
-                            Précisez le problème rencontré.
-                        </label>
-                        <textarea
-                            value={reportDescription}
-                            onChange={(e) => setReportDescription(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary"
-                            rows={4}
-                        />
-                    </div>
-                    <div className="flex justify-end">
-                        <button
-                            onClick={closeModal}
-                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2"
-                        >
-                            Annuler
-                        </button>
-                        <button
-                            onClick={handleReportSubmit}
-                            className="bg-primary text-white px-4 py-2 rounded-lg"
-                        >
-                            Soumettre
-                        </button>
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-600 text-sm font-medium mb-2">
+                                Précisez le problème rencontré.
+                            </label>
+                            <textarea
+                                value={reportDescription}
+                                onChange={(e) => setReportDescription(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary"
+                                rows={4}
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <button
+                                onClick={closeModal}
+                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2"
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                onClick={handleReportSubmit}
+                                className="bg-primary text-white px-4 py-2 rounded-lg"
+                            >
+                                Soumettre
+                            </button>
+                        </div>
                     </div>
                 </div>
-                </div>
-    )
-}
+            )
+            }
         </div >
     );
 };

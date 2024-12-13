@@ -21,6 +21,7 @@ import Landing from './pages/Landing';
 import Pricing from './pages/Pricing';
 import Settings from './pages/Settings'
 import MapSignal from './pages/MapSignal';
+import MyVisits from './pages/MyVisits';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuthStore();
@@ -150,6 +151,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <MapSignal/>
+                  </ProtectedRoute>
+                }
+              />
+               <Route
+                path="/myvisits"
+                element={
+                  <ProtectedRoute>
+                    <MyVisits/>
                   </ProtectedRoute>
                 }
               />

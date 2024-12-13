@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { BookOpen, Map, User, LogOut, Menu, MenuSquare, Settings } from 'lucide-react';
+import { BookOpen, Map, User, LogOut, Menu, MenuSquare, Settings, MapPinHouse, MapPinned } from 'lucide-react';
 
 const Navigation = () => {
   const { user, signOut } = useAuthStore();
@@ -109,6 +109,14 @@ const Navigation = () => {
                       >
                         <BookOpen className="h-5 w-5 mr-2" />
                         Mes boîtes
+                      </Link>
+                      <Link
+                        to="/myvisits"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <MapPinned className="h-5 w-5 mr-2" />
+                        Mes visites
                       </Link>
                       <Link
                         to="/settings"

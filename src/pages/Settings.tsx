@@ -6,6 +6,7 @@ import {
   Eye, EyeOff, Shield, Bell, Palette, LifeBuoy, ChevronRight, ChevronDown, ChevronUp,
   LockKeyhole,
   Crown,
+  X
 } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
@@ -15,6 +16,7 @@ const SettingsPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false); // État pour le modal
 
   // State for dropdown sections
   const [openSection, setOpenSection] = useState<string | null>('security');
@@ -46,7 +48,6 @@ const SettingsPage: React.FC = () => {
 
     fetchUserData();
   }, []);
-
 
   // Vérification dynamique
   const isFreemium = user?.subscription === 'Freemium';
@@ -176,27 +177,122 @@ const SettingsPage: React.FC = () => {
           <div className="space-y-4">
             {isFreemium ? (
               <div className="flex justify-between items-center p-3 rounded-lg bg-gray-100 text-gray-400">
-              <div>
-                <span>Signaler une boîte à livre</span>
-                <span className="block text-sm">(Réservé aux membres Premium)</span>
+                <div>
+                  <span>Signaler une boîte à livre</span>
+                  <span className="block text-sm">(Réservé aux membres Premium)</span>
+                </div>
+                <Crown className="w-6 h-6 text-[#ffb60e]" />
               </div>
-              <Crown className="w-5 h-5 text-[#efd807]" />
-            </div>
             ) : (
               <Link to="/map-signal" className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg">
                 <span className="text-gray-600">Signaler une boîte à livre</span>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </Link>
             )}
-            <Link to="/contact" className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg">
+            <button
+              onClick={() => setIsContactModalOpen(true)}
+              className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg w-full text-left"
+            >
               <span className="text-gray-600">Contactez-nous</span>
               <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Link>
+            </button>
           </div>
         </SettingsSection>
       </div>
+      {isContactModalOpen && <ContactModal onClose={() => setIsContactModalOpen(false)} />}
     </div>
   );
 };
 
 export default SettingsPage;
+
+// Composant de modal de contact
+const ContactModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Envoyer le formulaire de contact
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([{ name, email, message }]);
+
+      if (error) throw error;
+
+      toast.success('Votre message a été envoyé avec succès');
+      onClose();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex items-center pr-5 pl-5 pt-10 justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 transition"
+        >
+          <X className="w-6 h-6" />
+        </button>
+        <h2 className="text-xl font-semibold mb-4 text-center">Contactez-nous</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-gray-600 text-sm font-medium mb-2">Nom :</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary-light"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-600 text-sm font-medium mb-2">Email :</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary-light"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-gray-600 text-sm font-medium mb-2">Message</label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary-light"
+              rows={4}
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            >
+              Annuler
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition disabled:opacity-50"
+            >
+              {loading ? 'Envoi...' : 'Envoyer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
