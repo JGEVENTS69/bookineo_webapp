@@ -131,7 +131,7 @@ const MapSignal = () => {
             })
             : new DivIcon({
                 className: 'custom-div-icon',
-                html: `<div style="background-color: #3A7C6A; width: ${isSelected ? '10px' : '8px'
+                html: `<div style="background-color: #d8596e; width: ${isSelected ? '10px' : '8px'
                     }; height: ${isSelected ? '10px' : '8px'
                     }; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>`,
                 iconSize: [8, 8],
@@ -240,6 +240,19 @@ const MapSignal = () => {
 
                     <LocationButton />
 
+                    
+                    <div className="leaflet-bottom w-full" style={{ 
+                        position: 'absolute',
+                        bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)', }}>
+                        <div className="flex justify-center w-full">
+                            <div className="text-lg rounded-lg bg-[#d8596e] py-2 px-4 font-semibold text-white">
+                                Sélectionner une boîte à livre
+                            </div>
+                        </div>
+                    </div>
+
 
                     {userPosition && (
                         <Marker position={userPosition} icon={userIcon}>
@@ -257,7 +270,7 @@ const MapSignal = () => {
                             }}
                         >
                             <Popup>
-                                <div className="w-80 bg-white rounded-2xl shadow-lg overflow-hidden">
+                                <div className="w-70 bg-white rounded-2xl shadow-lg overflow-hidden">
                                     {box.image_url ? (
                                         <img
                                             src={box.image_url}
@@ -313,37 +326,44 @@ const MapSignal = () => {
                         <button className="modal-close-button" onClick={closeModal}>
                             <X className="h-6 w-6 text-gray-700" />
                         </button>
-                        <h2 className="text-xl font-semibold mb-1">Signaler la boîte à livre</h2>
-                        <p className="text-gray-600 mb-8">Nom: {selectedBox.name}</p>
-                        <div className="mb-4">
-                            <label className="block text-gray-600 text-sm font-medium mb-2">
-                            Précisez le problème rencontré.
-                            </label>
-                            <textarea
-                                value={reportDescription}
-                                onChange={(e) => setReportDescription(e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary-light"
-                                rows={4}
+                        <h2 className="text-xl font-semibold mb-5">Signaler la boîte à livre :</h2>
+                        <div className="flex items-center space-x-2 mb-4">
+                            <img
+                                src="https://thttmiedctypjsjwdeil.supabase.co/storage/v1/object/public/assets/Icon-Logo-Vert.png"
+                                className="h-7 w-7 text-gray-600"
                             />
-                        </div>
-                        <div className="flex justify-end">
-                            <button
-                                onClick={closeModal}
-                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2"
-                            >
-                                Annuler
-                            </button>
-                            <button
-                                onClick={handleReportSubmit}
-                                className="bg-primary text-white px-4 py-2 rounded-lg"
-                            >
-                                Soumettre
-                            </button>
-                        </div>
+                            <h1 className="text-2xl text-primary font-bold">{selectedBox.name}</h1>
+                        </div> 
+                    <div className="mb-4">
+                        <label className="block text-gray-600 text-sm font-medium mb-2">
+                            Précisez le problème rencontré.
+                        </label>
+                        <textarea
+                            value={reportDescription}
+                            onChange={(e) => setReportDescription(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-primary"
+                            rows={4}
+                        />
+                    </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={closeModal}
+                            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg mr-2"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            onClick={handleReportSubmit}
+                            className="bg-primary text-white px-4 py-2 rounded-lg"
+                        >
+                            Soumettre
+                        </button>
                     </div>
                 </div>
-            )}
-        </div>
+                </div>
+    )
+}
+        </div >
     );
 };
 

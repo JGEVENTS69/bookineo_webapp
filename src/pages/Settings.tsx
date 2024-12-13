@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import {
   Eye, EyeOff, Shield, Bell, Palette, LifeBuoy, ChevronRight, ChevronDown, ChevronUp,
   LockKeyhole,
+  Crown,
 } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
@@ -13,13 +14,42 @@ const SettingsPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [emailNotifications, setEmailNotifications] = useState(false);
-  const [pushNotifications, setPushNotifications] = useState(false);
-  const [language, setLanguage] = useState('Français');
-  const [theme, setTheme] = useState('Clair');
+  const [user, setUser] = useState<any>(null);
 
   // State for dropdown sections
   const [openSection, setOpenSection] = useState<string | null>('security');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Nouvelle méthode pour récupérer l'utilisateur
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+
+        if (user) {
+          // Récupérer l'abonnement depuis la table 'users'
+          const { data, error: userError } = await supabase
+            .from('users')
+            .select('subscription')
+            .eq('id', user.id)
+            .single();
+
+          if (userError) throw userError;
+
+          setUser({ ...user, subscription: data.subscription });
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération des données utilisateur:', err);
+        toast.error('Une erreur est survenue lors de la récupération des données utilisateur.');
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+
+  // Vérification dynamique
+  const isFreemium = user?.subscription === 'Freemium';
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,10 +174,20 @@ const SettingsPage: React.FC = () => {
           sectionKey="support"
         >
           <div className="space-y-4">
-            <Link to="/map-signal" className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg">
-              <span className="text-gray-600">Signaler une boîte à livre</span>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Link>
+            {isFreemium ? (
+              <div className="flex justify-between items-center p-3 rounded-lg bg-gray-100 text-gray-400">
+              <div>
+                <span>Signaler une boîte à livre</span>
+                <span className="block text-sm">(Réservé aux membres Premium)</span>
+              </div>
+              <Crown className="w-5 h-5 text-[#efd807]" />
+            </div>
+            ) : (
+              <Link to="/map-signal" className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg">
+                <span className="text-gray-600">Signaler une boîte à livre</span>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </Link>
+            )}
             <Link to="/contact" className="flex justify-between items-center hover:bg-gray-100 p-3 rounded-lg">
               <span className="text-gray-600">Contactez-nous</span>
               <ChevronRight className="w-5 h-5 text-gray-400" />
