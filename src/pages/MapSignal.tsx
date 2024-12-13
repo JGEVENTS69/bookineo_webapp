@@ -247,8 +247,8 @@ const MapSignal = () => {
           left: '50%',
           transform: 'translateX(-50%)', }}>
                         <div className="flex justify-center w-full">
-                            <div className="text-lg rounded-lg bg-[#d8596e] py-2 px-4 font-semibold text-white">
-                                Sélectionner une boîte à livre
+                            <div className="text-base font-bold text-black">
+                            Sélectionnez la boîte à signaler.
                             </div>
                         </div>
                     </div>
